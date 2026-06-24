@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dinner Planner</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+header{background:var(--accent);color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+header h1{font-size:1.4rem;font-weight:700}
+header p{font-size:.82rem;opacity:.85}
+.btn{padding:.45rem 1.1rem;border:none;border-radius:6px;font-size:.875rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.88}
+.btn-white{background:#fff;color:var(--accent)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-swap{background:var(--accent-light);color:var(--accent);border:none;padding:.28rem .7rem;font-size:.78rem;border-radius:4px;font-weight:600;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.3rem .8rem;font-size:.8rem;border-radius:5px;cursor:pointer}
+main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
+.setup{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;margin-bottom:2rem}
+.setup label{font-weight:600;font-size:.9rem;color:var(--muted)}
+.num-picker{display:flex;gap:.35rem}
+.nbt{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text)}
+.nbt.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.section-title{font-size:1rem;font-weight:700;margin-bottom:.875rem;display:flex;align-items:center;gap:.4rem}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.875rem;margin-bottom:1.75rem}
+.meal-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:1.1rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-day{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.card-name{font-size:.95rem;font-weight:700;line-height:1.3}
+.card-source{font-size:.74rem;color:var(--muted)}
+.card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.tag{font-size:.68rem;font-weight:600;padding:.12rem .45rem;border-radius:20px}
+.tq{background:#e8f3ec;color:var(--quick)}
+.tm{background:#fdf3e0;color:var(--mod)}
+.tw{background:#fde8e4;color:var(--wknd)}
+.td{background:#fce8ff;color:#7a3080}
+.tf{background:#e4f0e4;color:#3a6a3a}
+.ta{background:#fff8e0;color:#a07020}
+.tv{background:#eaf0ea;color:#3a6a3a}
+.card-note{font-size:.72rem;color:var(--accent);font-style:italic}
+.card-foot{display:flex;gap:.5rem;align-items:center;margin-top:auto;padding-top:.7rem;border-top:1px solid var(--border)}
+.day-sel{flex:1;padding:.28rem .45rem;border:1px solid var(--border);border-radius:4px;font-size:.78rem;background:var(--bg);color:var(--text);cursor:pointer}
+.box{background:#fff;border-radius:10px;border:1px solid var(--border);padding:1.25rem;margin-bottom:1.5rem}
+.shared-pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.s-pill{background:var(--accent-light);color:var(--accent);font-size:.78rem;font-weight:600;padding:.22rem .65rem;border-radius:20px}
+.s-ct{font-size:.68rem;opacity:.75}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:1.25rem;margin-top:.875rem}
+.g-cat-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.45rem}
+.g-item{display:flex;align-items:flex-start;gap:.45rem;font-size:.84rem;margin-bottom:.35rem}
+.g-item input{margin-top:.15rem;accent-color:var(--accent);flex-shrink:0}
+.g-item.shared{font-weight:600}
+.s-dot{display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-top:.42rem;flex-shrink:0}
+.gap-dot{display:inline-block;width:6px;flex-shrink:0}
+.pantry-section{margin-top:1.25rem;padding-top:1.1rem;border-top:1px dashed var(--border)}
+.pantry-pills{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}
+.p-pill{background:var(--sand);color:var(--muted);font-size:.75rem;padding:.18rem .55rem;border-radius:20px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:680px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.modal-head strong{font-size:.95rem;white-space:nowrap}
+.modal-search{flex:1;padding:.4rem .65rem;border:1px solid var(--border);border-radius:5px;font-size:.84rem;outline:none}
+.modal-search:focus{border-color:var(--accent)}
+.modal-x{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted)}
+.modal-body{overflow-y:auto;padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.65rem}
+.r-opt{border:1.5px solid var(--border);border-radius:8px;padding:.75rem;cursor:pointer;transition:all .15s}
+.r-opt:hover{border-color:var(--accent);background:var(--accent-light)}
+.r-opt-name{font-size:.84rem;font-weight:600;line-height:1.3;margin-bottom:.2rem}
+.r-opt-src{font-size:.68rem;color:var(--muted)}
+.hidden{display:none!important}
+/* Add Recipe form */
+.add-modal{background:#fff;border-radius:12px;width:100%;max-width:580px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.add-modal .modal-body{overflow-y:auto;padding:1.1rem 1.25rem;display:block}
+.form-row{margin-bottom:.9rem}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.9rem}
+.form-label{display:block;font-size:.79rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;color:var(--muted)}
+.form-input,.form-select,.form-textarea{width:100%;padding:.42rem .65rem;border:1px solid var(--border);border-radius:5px;font-size:.84rem;font-family:inherit;outline:none;background:#fff;color:var(--text)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:54px}
+.form-select{background:var(--bg);cursor:pointer}
+.ing-list{margin-top:.45rem}
+.ing-row{display:flex;gap:.45rem;align-items:center;margin-bottom:.4rem}
+.ing-name{flex:1;padding:.35rem .55rem;border:1px solid var(--border);border-radius:4px;font-size:.82rem;font-family:inherit;outline:none}
+.ing-name:focus{border-color:var(--accent)}
+.ing-cat{padding:.35rem .4rem;border:1px solid var(--border);border-radius:4px;font-size:.78rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
+.ing-p{display:flex;align-items:center;gap:.2rem;font-size:.72rem;color:var(--muted);white-space:nowrap}
+.ing-p input{accent-color:var(--accent)}
+.ing-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.05rem;padding:.15rem .3rem;border-radius:3px;line-height:1}
+.ing-del:hover{color:#c0392b;background:#fde8e4}
+.tags-grid{display:flex;flex-wrap:wrap;gap:.5rem}
+.tag-chk{display:flex;align-items:center;gap:.3rem;font-size:.82rem;padding:.25rem .6rem;border:1px solid var(--border);border-radius:20px;cursor:pointer;user-select:none}
+.tag-chk:has(input:checked){background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.tag-chk input{display:none}
+.modal-foot{padding:.85rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.6rem;flex-shrink:0;background:#fff}
+.btn-sm{padding:.38rem .9rem;font-size:.82rem}
+/* Database view */
+.db-bar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.db-search{flex:1;min-width:160px;padding:.4rem .7rem;border:1px solid var(--border);border-radius:6px;font-size:.84rem;outline:none;font-family:inherit}
+.db-search:focus{border-color:var(--accent)}
+.db-filter{padding:.38rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
+.db-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
+.db-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.45rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.db-card-name{font-size:.9rem;font-weight:700;line-height:1.3}
+.db-card-src{font-size:.74rem;color:var(--muted)}
+.db-card-ings{font-size:.75rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.db-card-foot{display:flex;gap:.4rem;margin-top:auto;padding-top:.65rem;border-top:1px solid var(--border)}
+.btn-edit{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text)}
+.btn-edit:hover{border-color:var(--accent);color:var(--accent)}
+.btn-del{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted)}
+.btn-del:hover{border-color:#c0392b;color:#c0392b;background:#fde8e4}
+@media print{
+  header .print-hide{display:none}
+  .setup,.btn-swap,.modal-bg{display:none!important}
+  .day-sel{border:none;font-weight:700;background:transparent;pointer-events:none}
+  body{background:#fff}
+  .box,.meal-card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
+  <div class="print-hide" style="display:flex;gap:.6rem;align-items:center">
+    <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
+    <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
+    <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
+    <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
+    <label class="btn btn-outline" style="cursor:pointer" title="Restore recipes from a backup file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importRecipes(event)"></label>
+    <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
+  </div>
+</header>
+
+<main>
+  <div class="setup">
+    <label>How many dinners?</label>
+    <div class="num-picker" id="num-picker"></div>
+    <button class="btn btn-accent" onclick="handleSuggest()">✨ Suggest a week</button>
+  </div>
+
+  <!-- Database view -->
+  <div id="db-section" class="hidden">
+    <div class="db-bar">
+      <input class="db-search" id="db-search" type="text" placeholder="Search by name or cookbook…" oninput="renderDB()">
+      <select class="db-filter" id="db-time" onchange="renderDB()">
+        <option value="">All times</option>
+        <option value="quick">🟢 Quick</option>
+        <option value="moderate">🟡 Moderate</option>
+        <option value="weekend">🔴 Weekend</option>
+      </select>
+      <select class="db-filter" id="db-tag" onchange="renderDB()">
+        <option value="">All tags</option>
+        <option value="daughter-approved">⭐ Kid-friendly</option>
+        <option value="vegetarian">🌿 Vegetarian</option>
+        <option value="fiber">🥗 Fiber</option>
+        <option value="healthy-fats">🥑 Healthy fats</option>
+      </select>
+      <span class="db-count" id="db-count"></span>
+    </div>
+    <div class="db-grid" id="db-grid"></div>
+  </div>
+
+  <div id="plan-section" class="hidden">
+    <div class="section-title">📅 This Week's Plan</div>
+    <div class="plan-grid" id="plan-grid"></div>
+
+    <div class="box">
+      <div class="section-title">🔗 Shared Ingredients</div>
+      <div id="shared-out"></div>
+    </div>
+
+    <div class="box">
+      <div class="section-title">🛒 Shopping List</div>
+      <div id="grocery-out"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Add Recipe Modal -->
+<div class="modal-bg" id="add-modal" onclick="bgAddClick(event)">
+  <div class="add-modal">
+    <div class="modal-head">
+      <strong id="af-modal-title">Add a recipe</strong>
+      <span style="flex:1"></span>
+      <button class="modal-x" onclick="closeAddModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">Recipe name *</label>
+        <input class="form-input" id="af-name" type="text" placeholder="e.g. Lemon Herb Roast Chicken">
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">Cookbook / Source</label>
+          <input class="form-input" id="af-src" type="text" placeholder="e.g. Smitten Kitchen or Bri's own">
+        </div>
+        <div>
+          <label class="form-label">Page</label>
+          <input class="form-input" id="af-page" type="text" placeholder="e.g. p.142">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">Cook time</label>
+          <select class="form-select" id="af-time">
+            <option value="quick">🟢 Quick (under 35 min)</option>
+            <option value="moderate" selected>🟡 Moderate (35–60 min)</option>
+            <option value="weekend">🔴 Weekend project</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Tags</label>
+          <div class="tags-grid" style="margin-top:.15rem">
+            <label class="tag-chk"><input type="checkbox" value="daughter-approved">⭐ Kid-friendly</label>
+            <label class="tag-chk"><input type="checkbox" value="vegetarian">🌿 Vegetarian</label>
+            <label class="tag-chk"><input type="checkbox" value="fiber">🥗 Fiber</label>
+            <label class="tag-chk"><input type="checkbox" value="healthy-fats">🥑 Healthy fats</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Note <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <textarea class="form-textarea" id="af-note" placeholder="e.g. Marinate 2 hrs ahead · Better next day"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Ingredients</label>
+        <div class="ing-list" id="af-ings"></div>
+        <button class="btn-ghost" style="margin-top:.4rem" onclick="addIngRow()">+ Add ingredient</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div id="af-err" style="flex:1;font-size:.8rem;color:#c0392b;align-self:center"></div>
+      <button class="btn btn-ghost btn-sm" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-accent btn-sm" onclick="saveRecipe()">Save recipe</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" onclick="bgClick(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <strong>Choose a recipe</strong>
+      <input class="modal-search" id="msearch" type="text" placeholder="Search…" oninput="renderModal()">
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const CAT = {protein:'🥩 Protein & Seafood',produce:'🥦 Produce',dairy:'🧀 Dairy',pantry:'🥫 Pantry & Canned',specialty:'✨ Specialty',frozen:'🧊 Frozen'};
+const CAT_ORDER = ['protein','produce','dairy','pantry','specialty','frozen'];
+
+const R = [
+  {id:1,name:'Cumin-Roasted Cauliflower & Dates',src:'Alison Roman — Dining In',page:'p.51',time:'quick',tags:['vegetarian','fiber','healthy-fats'],note:'Pair with salmon or protein — not standalone',ings:[
+    {n:'cauliflower',c:'produce'},{n:'Medjool dates',c:'produce'},{n:'tahini',c:'pantry'},{n:'pine nuts',c:'specialty'},{n:'scallions',c:'produce'},{n:'fresh mint',c:'produce'},{n:'fresh cilantro',c:'produce'},{n:'sherry vinegar',c:'pantry'}]},
+  {id:2,name:'Vinegar-Braised Chicken with Farro & Watercress',src:'Alison Roman — Dining In',page:'p.221',time:'weekend',tags:['fiber'],ings:[
+    {n:'bone-in chicken pieces',c:'protein'},{n:'farro',c:'pantry'},{n:'garlic',c:'produce'},{n:'watercress',c:'produce'},{n:'yuzu kosho',c:'specialty'},{n:'vinegar',c:'pantry',p:1}]},
+  {id:3,name:'Chicken with Dates & Caramelized Lemon',src:'Alison Roman — Nothing Fancy',page:'p.194',time:'moderate',tags:['daughter-approved'],note:'Make with mustard croutons',ings:[
+    {n:'bone-in skin-on chicken thighs',c:'protein'},{n:'Medjool dates',c:'produce'},{n:'lemon',c:'produce'},{n:'shallots',c:'produce'},{n:'fresh thyme',c:'produce'},{n:'bread (for croutons)',c:'pantry'},{n:'Dijon mustard',c:'pantry',p:1}]},
+  {id:4,name:'Sausages with Peaches, Fennel & Spinach',src:'Hot Sheet',page:'p.105',time:'quick',tags:['daughter-approved','fiber'],ings:[
+    {n:'chicken apple sausages (TJ\'s)',c:'protein'},{n:'fennel bulbs',c:'produce'},{n:'shallots',c:'produce'},{n:'frozen sliced peaches',c:'frozen'},{n:'baby spinach',c:'produce'},{n:'fresh basil',c:'produce'},{n:'balsamic vinegar',c:'pantry',p:1}]},
+  {id:5,name:'Cheesy Orzo with Mushrooms',src:'Hot Sheet',page:'p.195',time:'quick',tags:['vegetarian','fiber'],ings:[
+    {n:'cremini mushrooms',c:'produce'},{n:'yellow onion',c:'produce'},{n:'orzo',c:'pantry'},{n:'chicken or vegetable broth',c:'pantry'},{n:'Dijon mustard',c:'pantry',p:1},{n:'burrata or fresh mozzarella',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'flat-leaf parsley',c:'produce'}]},
+  {id:6,name:'Gnocchi with Broccoli & Lemony Goat Cheese',src:'Hot Sheet',page:'p.203',time:'quick',tags:['vegetarian'],ings:[
+    {n:'store-bought gnocchi',c:'pantry'},{n:'broccoli or broccolini',c:'produce'},{n:'goat cheese',c:'dairy'},{n:'lemon',c:'produce'},{n:'heavy cream',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'fresh basil',c:'produce'}]},
+  {id:7,name:'Halal Cart-Style Street Chicken',src:'Kenji López-Alt',page:'',time:'moderate',tags:['daughter-approved'],note:'Sloane loves this one',ings:[
+    {n:'boneless skinless chicken thighs',c:'protein'},{n:'lemon',c:'produce'},{n:'garlic',c:'produce'},{n:'long grain rice',c:'pantry'},{n:'chicken broth',c:'pantry'},{n:'Greek yogurt',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'pita',c:'pantry'},{n:'cherry tomatoes',c:'produce'},{n:'dried oregano',c:'pantry',p:1},{n:'turmeric',c:'pantry',p:1},{n:'cumin',c:'pantry',p:1}]},
+  {id:8,name:'Better Chicken Pot Pie',src:'Smitten Kitchen',page:'',time:'weekend',tags:[],note:'All-day project, worth it',ings:[
+    {n:'bone-in chicken',c:'protein'},{n:'leeks',c:'produce'},{n:'yellow onion',c:'produce'},{n:'dry sherry',c:'pantry'},{n:'chicken broth',c:'pantry'},{n:'carrots',c:'produce'},{n:'frozen peas',c:'frozen'},{n:'sour cream',c:'dairy'},{n:'fresh thyme',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'all-purpose flour',c:'pantry',p:1}]},
+  {id:9,name:'Gingery Ground Beef & Limes',src:'Carla Lalli Music — That Sounds So Good',page:'p.60',time:'quick',tags:['healthy-fats'],ings:[
+    {n:'ground beef',c:'protein'},{n:'fresh ginger',c:'produce'},{n:'garlic',c:'produce'},{n:'lime',c:'produce'},{n:'soy sauce',c:'pantry',p:1},{n:'fish sauce',c:'pantry'},{n:'fresh cilantro',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'sriracha',c:'pantry',p:1}]},
+  {id:10,name:'Stuffed Bell Pepper Skillet',src:'Two Peas and Their Pod',page:'',time:'quick',tags:['daughter-approved','fiber'],ings:[
+    {n:'ground beef',c:'protein'},{n:'yellow onion',c:'produce'},{n:'red bell pepper',c:'produce'},{n:'yellow bell pepper',c:'produce'},{n:'garlic',c:'produce'},{n:'fire-roasted diced tomatoes',c:'pantry'},{n:'long grain white rice',c:'pantry'},{n:'beef or chicken broth',c:'pantry'},{n:'mozzarella cheese',c:'dairy'},{n:'cheddar cheese',c:'dairy'},{n:'tomato paste',c:'pantry',p:1},{n:'Worcestershire sauce',c:'pantry',p:1}]},
+  {id:11,name:'House Pasta',src:"Bri's own",page:'',time:'quick',tags:[],ings:[
+    {n:'pasta',c:'pantry'},{n:'tomato paste',c:'pantry',p:1},{n:'lemon',c:'produce'},{n:'burrata',c:'dairy'},{n:'garlic',c:'produce'}]},
+  {id:12,name:"Flatbread with Sour Cream, Za'atar & Mushrooms",src:"Bri's own",page:'',time:'quick',tags:[],note:"Get frozen flatbread from TJ's",ings:[
+    {n:"frozen flatbread (TJ's)",c:'frozen'},{n:'sour cream',c:'dairy'},{n:"za'atar",c:'specialty'},{n:'cremini mushrooms',c:'produce'}]},
+  {id:13,name:'Frittata',src:"Bri's own",page:'',time:'quick',tags:['fiber'],ings:[
+    {n:'eggs',c:'dairy'},{n:'cremini mushrooms',c:'produce'},{n:'goat cheese',c:'dairy'},{n:'baby spinach',c:'produce'},{n:'bacon or sausage',c:'protein'}]},
+  {id:14,name:'Pan-Fried Salmon + Roasted Veg',src:"Bri's own",page:'',time:'quick',tags:['daughter-approved','healthy-fats'],note:'Sloane eats the salmon. Pair with garlic butter angel hair (NYT p.130) or asparagus.',ings:[
+    {n:'salmon fillets',c:'protein'},{n:'asparagus or broccolini',c:'produce'},{n:'lemon',c:'produce'},{n:'garlic',c:'produce'}]},
+  {id:15,name:'Chicken Curry with Chickpeas',src:"Bri's own",page:'',time:'moderate',tags:['daughter-approved','fiber'],ings:[
+    {n:'boneless chicken thighs',c:'protein'},{n:'canned diced tomatoes',c:'pantry'},{n:'chickpeas',c:'pantry'},{n:'shallots',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'cumin',c:'pantry',p:1},{n:'coriander',c:'pantry',p:1},{n:'turmeric',c:'pantry',p:1},{n:'garam masala',c:'pantry',p:1}]},
+  {id:16,name:'Viral Baked Feta Pasta',src:"Bri's own",page:'',time:'moderate',tags:[],ings:[
+    {n:'block feta',c:'dairy'},{n:'cherry tomatoes',c:'produce'},{n:'pasta',c:'pantry'},{n:'garlic',c:'produce'},{n:'fresh basil',c:'produce'}]},
+  {id:17,name:'Stewed Chicken with Sour Cream Dumplings',src:'Julia Turshen — Simply Julia',page:'p.94',time:'moderate',tags:['daughter-approved'],ings:[
+    {n:'chicken breasts',c:'protein'},{n:'chicken stock',c:'pantry'},{n:'carrots',c:'produce'},{n:'baby spinach',c:'produce'},{n:'sour cream',c:'dairy'},{n:'fresh chives',c:'produce'},{n:'all-purpose flour',c:'pantry',p:1}]},
+  {id:18,name:'Sticky Chicken',src:'Julia Turshen — Simply Julia',page:'p.82',time:'quick',tags:['daughter-approved'],ings:[
+    {n:'boneless skinless chicken thighs',c:'protein'},{n:'garlic',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'ketchup',c:'pantry',p:1},{n:'honey',c:'pantry',p:1},{n:'soy sauce',c:'pantry',p:1},{n:'chili garlic sauce',c:'pantry',p:1},{n:'cornstarch',c:'pantry',p:1}]},
+  {id:19,name:'Spinach + Artichoke Dip Chicken Bake',src:'Julia Turshen — Simply Julia',page:'p.81',time:'quick',tags:[],ings:[
+    {n:'boneless skinless chicken thighs',c:'protein'},{n:'garlic',c:'produce'},{n:'frozen leaf spinach',c:'frozen'},{n:'canned artichoke hearts',c:'pantry'},{n:'sour cream',c:'dairy'},{n:'parmesan',c:'dairy'}]},
+  {id:20,name:"My Mother-in-Law's Brunswick Stew",src:'Julia Turshen — Simply Julia',page:'p.114',time:'moderate',tags:['daughter-approved'],note:'Better the next day — make ahead',ings:[
+    {n:'rotisserie chicken',c:'protein'},{n:'bacon',c:'protein'},{n:'yellow onion',c:'produce'},{n:'canned diced tomatoes',c:'pantry'},{n:'frozen lima beans',c:'frozen'},{n:'fresh or frozen corn',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'all-purpose flour',c:'pantry',p:1}]},
+  {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],ings:[
+    {n:'store-bought gnocchi',c:'pantry'},{n:'frozen peas',c:'frozen'},{n:'asparagus',c:'produce'},{n:'parmesan',c:'dairy'},{n:'garlic',c:'produce'},{n:'lemon',c:'produce'},{n:'fresh mint',c:'produce'},{n:'butter',c:'dairy',p:1}]},
+  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:[],note:'Slow cooker dump-and-forget',ings:[
+    {n:'chuck roast',c:'protein'},{n:'ranch seasoning packet',c:'specialty'},{n:'au jus mix packet',c:'specialty'},{n:'pepperoncini peppers (whole jar)',c:'pantry'},{n:'butter',c:'dairy',p:1}]},
+  {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],ings:[
+    {n:'acorn squash',c:'produce'},{n:'garlic',c:'produce'},{n:'pine nuts',c:'specialty'},{n:'feta cheese',c:'dairy'},{n:'butter',c:'dairy',p:1}]},
+  {id:24,name:'Simple Tuna Patties',src:'Bon Appétit',page:'',time:'quick',tags:['daughter-approved'],note:'Sloane may eat these',ings:[
+    {n:'canned tuna in olive oil',c:'pantry'},{n:'eggs',c:'dairy'},{n:'lemon',c:'produce'},{n:'mayonnaise',c:'pantry',p:1},{n:'panko breadcrumbs',c:'pantry',p:1},{n:'Dijon mustard',c:'pantry',p:1}]},
+  {id:25,name:'Orecchiette with Sausage & Broccoli',src:'Once Upon a Chef',page:'',time:'quick',tags:['daughter-approved'],ings:[
+    {n:'Italian sausage (bulk)',c:'protein'},{n:'orecchiette pasta',c:'pantry'},{n:'garlic',c:'produce'},{n:'chicken broth',c:'pantry'},{n:'broccoli florets',c:'produce'},{n:'pecorino Romano or parmesan',c:'dairy'},{n:'butter',c:'dairy',p:1}]},
+  {id:26,name:'Miso-Honey Sheet Pan Chicken',src:'NYT Easy Weeknight Dinners',page:'p.30',time:'quick',tags:[],ings:[
+    {n:'boneless skinless chicken thighs',c:'protein'},{n:'white miso',c:'specialty'},{n:'fresh ginger',c:'produce'},{n:'garlic',c:'produce'},{n:'honey',c:'pantry',p:1},{n:'soy sauce',c:'pantry',p:1},{n:'rice vinegar',c:'pantry',p:1},{n:'chile-garlic sauce',c:'pantry',p:1}]},
+  {id:27,name:'Beans and Greens Alla Vodka',src:'NYT Easy Weeknight Dinners',page:'p.196',time:'quick',tags:['vegetarian','fiber'],ings:[
+    {n:'yellow onion',c:'produce'},{n:'garlic',c:'produce'},{n:'white beans (2 cans)',c:'pantry'},{n:'baby spinach',c:'produce'},{n:'heavy cream',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'tomato paste',c:'pantry',p:1},{n:'vodka',c:'pantry',p:1}]},
+  {id:28,name:'Lentils with Wine-Glazed Vegetables',src:'Deborah Madison — Vegetarian Cooking for Everyone',page:'',time:'moderate',tags:['vegetarian','fiber'],note:'Can top with puff pastry for pot pie version',ings:[
+    {n:'French green or Beluga lentils',c:'pantry'},{n:'yellow onion',c:'produce'},{n:'carrot',c:'produce'},{n:'celery',c:'produce'},{n:'garlic',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'flat-leaf parsley',c:'produce'},{n:'tomato paste',c:'pantry',p:1},{n:'Dijon mustard',c:'pantry',p:1},{n:'butter',c:'dairy',p:1},{n:'puff pastry (optional)',c:'frozen'}]},
+  {id:29,name:'Sheet Pan Chicken Thighs with Mustard Croutons',src:"Bri's own",page:'',time:'moderate',tags:[],ings:[
+    {n:'bone-in skin-on chicken thighs',c:'protein'},{n:'bread (for croutons)',c:'pantry'},{n:'butter',c:'dairy',p:1},{n:'Dijon mustard',c:'pantry',p:1}]},
+  {id:30,name:'Peanut Chicken Chop',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.55',time:'quick',tags:['fiber','healthy-fats'],note:'Great use of leftover rotisserie chicken',ings:[
+    {n:'shredded chicken',c:'protein'},{n:'creamy peanut butter',c:'pantry'},{n:'carrots',c:'produce'},{n:'edamame (frozen)',c:'frozen'},{n:'soy sauce',c:'pantry',p:1},{n:'apple cider vinegar',c:'pantry',p:1},{n:'sriracha',c:'pantry',p:1},{n:'honey',c:'pantry',p:1}]},
+  {id:31,name:'Enchilada Rice Skillet',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.180',time:'quick',tags:['daughter-approved','fiber'],ings:[
+    {n:'ground beef',c:'protein'},{n:'red bell pepper',c:'produce'},{n:'scallions',c:'produce'},{n:'black beans',c:'pantry'},{n:'enchilada sauce',c:'pantry'},{n:'white rice',c:'pantry'},{n:'shredded cheddar',c:'dairy'},{n:'sour cream',c:'dairy'},{n:'beef stock',c:'pantry'}]},
+  {id:32,name:'One-Pan Garlicky Chicken Couscous',src:'Caroline Gelen — Pass the Plate',page:'p.77',time:'quick',tags:['daughter-approved'],ings:[
+    {n:'bone-in chicken thighs',c:'protein'},{n:'shallots',c:'produce'},{n:'pearled couscous',c:'pantry'},{n:'garlic',c:'produce'},{n:'fresh dill',c:'produce'},{n:'chicken bouillon cube',c:'pantry'},{n:'vinegar',c:'pantry',p:1}]},
+  {id:33,name:'One-Pot Baked Risotto with Tomatoes & Burrata',src:'Caroline Gelen — Pass the Plate',page:'p.150',time:'moderate',tags:['vegetarian'],ings:[
+    {n:'arborio rice',c:'pantry'},{n:'shallot',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'whole head of garlic',c:'produce'},{n:'parmesan',c:'dairy'},{n:'burrata',c:'dairy'},{n:'fresh thyme or oregano',c:'produce'},{n:'tomato paste',c:'pantry',p:1},{n:'butter',c:'dairy',p:1}]},
+  {id:34,name:'Salmon Kebabs with Nigella',src:'Flavors of the Sun',page:'p.132',time:'moderate',tags:['healthy-fats'],note:"⭐ 'One of my favorite salmon recipes ever' — marinate 2 hrs ahead",ings:[
+    {n:'center-cut skinless salmon fillet (2 lbs)',c:'protein'},{n:'fresh parsley',c:'produce'},{n:'fresh mint',c:'produce'},{n:'fresh chives',c:'produce'},{n:'Aleppo pepper',c:'specialty'},{n:'nigella seeds',c:'specialty'},{n:'red onion',c:'produce'},{n:'lemon',c:'produce'},{n:'cumin',c:'pantry',p:1}]},
+  {id:35,name:'Roasted Cauliflower Salad with Lentils & Dates',src:'Flavors of the Sun',page:'p.306',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],ings:[
+    {n:'cauliflower',c:'produce'},{n:'French green lentils',c:'pantry'},{n:'Medjool dates',c:'produce'},{n:'scallions',c:'produce'},{n:'baby spinach or arugula',c:'produce'},{n:'roasted almonds',c:'specialty'},{n:'tahini',c:'pantry'},{n:'lemon',c:'produce'},{n:'fresh mint',c:'produce'},{n:'honey',c:'pantry',p:1}]},
+  {id:36,name:'Beef and Lentil Bowl with Tahini Dressing',src:'Flavors of the Sun',page:'p.262',time:'moderate',tags:['fiber','healthy-fats'],note:"Crispy onions are key — don't rush them",ings:[
+    {n:'beef top round (thin strips)',c:'protein'},{n:'shawarma spices',c:'specialty'},{n:'yellow onion',c:'produce'},{n:'French lentils',c:'pantry'},{n:'jasmine rice',c:'pantry'},{n:'tahini',c:'pantry'},{n:'lemon',c:'produce'},{n:'flat-leaf parsley',c:'produce'},{n:'garlic',c:'produce'},{n:'Persian cucumbers',c:'produce'},{n:'grape tomatoes',c:'produce'},{n:'dry red wine',c:'pantry',p:1}]},
+  {id:37,name:'Pasta with Tuna & Mushrooms',src:'Joshua McFadden — Six Seasons of Pasta',page:'p.258',time:'moderate',tags:[],ings:[
+    {n:'campanelle pasta',c:'pantry'},{n:'canned tuna',c:'pantry'},{n:'cremini mushrooms',c:'produce'},{n:'green beans',c:'produce'},{n:'yellow onion',c:'produce'},{n:'pancetta',c:'protein'},{n:'heavy cream',c:'dairy'},{n:'pecorino Romano',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'panko breadcrumbs',c:'pantry',p:1}]},
+  {id:38,name:"Not Your Mother's Tuna Casserole",src:'The Modern Proper',page:'p.199',time:'moderate',tags:[],note:'More veg-forward than traditional; lighter pick of the two tuna options',ings:[
+    {n:'canned tuna in olive oil',c:'pantry'},{n:'green cabbage',c:'produce'},{n:'leeks',c:'produce'},{n:'garlic',c:'produce'},{n:'heavy cream',c:'dairy'},{n:'Gruyère cheese',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'fresh thyme',c:'produce'},{n:'panko breadcrumbs',c:'pantry',p:1}]},
+  {id:39,name:'Herby Egg Salad',src:'Caroline Gelen — Pass the Plate',page:'p.45',time:'quick',tags:[],note:'Lunch',ings:[
+    {n:'eggs',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'scallions',c:'produce'},{n:'fresh dill',c:'produce'},{n:'pickled peppers',c:'pantry'},{n:'whole grain mustard',c:'pantry',p:1},{n:'prepared horseradish',c:'pantry'},{n:'lemon',c:'produce'},{n:'bread',c:'pantry'}]},
+  {id:40,name:'Garlic Butter Angel Hair (salmon side)',src:'NYT Easy Weeknight Dinners',page:'p.130',time:'quick',tags:[],note:'Side dish — serve with pan-fried salmon',ings:[
+    {n:'angel hair pasta',c:'pantry'},{n:'cherry tomatoes',c:'produce'},{n:'garlic',c:'produce'},{n:'fresh basil',c:'produce'},{n:'butter',c:'dairy',p:1}]},
+];
+
+// ---- DATABASE VIEW ----
+let dbVisible = false;
+
+function toggleDB(){
+  dbVisible = !dbVisible;
+  document.getElementById('db-section').classList.toggle('hidden', !dbVisible);
+  document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : '📖 All Recipes';
+  if(dbVisible){ renderDB(); document.getElementById('db-search').focus(); }
+}
+
+function renderDB(){
+  const q = document.getElementById('db-search').value.toLowerCase();
+  const tFilter = document.getElementById('db-time').value;
+  const tagFilter = document.getElementById('db-tag').value;
+  let recipes = R.filter(r=>{
+    if(q && !r.name.toLowerCase().includes(q) && !r.src.toLowerCase().includes(q)) return false;
+    if(tFilter && r.time !== tFilter) return false;
+    if(tagFilter && !r.tags.includes(tagFilter)) return false;
+    return true;
+  });
+  document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
+  document.getElementById('db-grid').innerHTML = recipes.map(r=>`
+    <div class="db-card">
+      <div>
+        <div class="db-card-name">${r.name}</div>
+        <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
+      </div>
+      <div class="card-tags" style="margin:.1rem 0">
+        ${timeTag(r.time)}
+        ${r.tags.includes('daughter-approved')?'<span class="tag td">⭐ Kid</span>':''}
+        ${r.tags.includes('vegetarian')?'<span class="tag tv">🌿 Veg</span>':''}
+        ${r.tags.includes('fiber')?'<span class="tag tf">🥗 Fiber</span>':''}
+        ${r.tags.includes('healthy-fats')?'<span class="tag ta">🥑 Fats</span>':''}
+      </div>
+      ${r.note?`<div class="card-note" style="font-size:.72rem">${r.note}</div>`:''}
+      <div class="db-card-ings">${r.ings.map(i=>i.n).join(', ')}</div>
+      <div class="db-card-foot">
+        <button class="btn-edit" onclick="openEditModal(${r.id})">✏ Edit</button>
+        <button class="btn-del" onclick="deleteRecipe(${r.id})">🗑 Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteRecipe(id){
+  const r = R.find(x=>x.id===id);
+  if(!r) return;
+  if(!confirm(`Delete "${r.name}"? This can't be undone.`)) return;
+  const idx = R.findIndex(x=>x.id===id);
+  R.splice(idx,1);
+  saveToStorage();
+  // remove from plan if present
+  plan = plan.filter(p=>p.r.id!==id);
+  if(plan.length) renderAll();
+  renderDB();
+}
+
+// ---- ADD RECIPE ----
+let nextId = R.length + 1;
+let editingId = null; // null = adding new, number = editing existing
+const CAT_OPTS = ['produce','protein','dairy','pantry','specialty','frozen'];
+
+function addIngRow(name='',cat='produce',isPantry=false){
+  const list = document.getElementById('af-ings');
+  const row = document.createElement('div');
+  row.className = 'ing-row';
+  row.innerHTML = `
+    <input class="ing-name" type="text" placeholder="Ingredient name" value="${name.replace(/"/g,'&quot;')}">
+    <select class="ing-cat">${CAT_OPTS.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('')}</select>
+    <label class="ing-p" title="Check Pantry First — item is likely already in your pantry"><input type="checkbox"${isPantry?' checked':''}> pantry?</label>
+    <button class="ing-del" onclick="this.parentNode.remove()" title="Remove">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('.ing-name').focus();
+}
+
+function openAddModal(){
+  editingId = null;
+  document.getElementById('af-modal-title').textContent = 'Add a recipe';
+  document.getElementById('af-name').value='';
+  document.getElementById('af-src').value='';
+  document.getElementById('af-page').value='';
+  document.getElementById('af-time').value='moderate';
+  document.getElementById('af-note').value='';
+  document.getElementById('af-err').textContent='';
+  document.querySelectorAll('#add-modal .tag-chk input').forEach(cb=>cb.checked=false);
+  const list=document.getElementById('af-ings');
+  list.innerHTML='';
+  addIngRow();
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('af-name').focus(),80);
+}
+
+function openEditModal(id){
+  const r = R.find(x=>x.id===id);
+  if(!r) return;
+  editingId = id;
+  document.getElementById('af-modal-title').textContent = 'Edit recipe';
+  document.getElementById('af-name').value = r.name;
+  document.getElementById('af-src').value = r.src;
+  document.getElementById('af-page').value = r.page||'';
+  document.getElementById('af-time').value = r.time;
+  document.getElementById('af-note').value = r.note||'';
+  document.getElementById('af-err').textContent = '';
+  document.querySelectorAll('#add-modal .tag-chk input').forEach(cb=>{cb.checked=r.tags.includes(cb.value);});
+  const list=document.getElementById('af-ings');
+  list.innerHTML='';
+  (r.ings.length ? r.ings : [{}]).forEach(i=>addIngRow(i.n||'',i.c||'produce',!!i.p));
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('af-name').focus(),80);
+}
+
+function closeAddModal(){document.getElementById('add-modal').classList.remove('open');}
+function bgAddClick(e){if(e.target===document.getElementById('add-modal'))closeAddModal();}
+
+function saveRecipe(){
+  const name=document.getElementById('af-name').value.trim();
+  if(!name){document.getElementById('af-err').textContent='Recipe name is required.';return;}
+  const rows=[...document.getElementById('af-ings').querySelectorAll('.ing-row')];
+  const ings=rows.map(row=>({
+    n:row.querySelector('.ing-name').value.trim(),
+    c:row.querySelector('.ing-cat').value,
+    p:row.querySelector('input[type=checkbox]').checked?1:undefined
+  })).filter(i=>i.n);
+  const tags=[...document.querySelectorAll('#add-modal .tag-chk input')].filter(cb=>cb.checked).map(cb=>cb.value);
+  const data={
+    name,
+    src:document.getElementById('af-src').value.trim()||"Bri's own",
+    page:document.getElementById('af-page').value.trim(),
+    time:document.getElementById('af-time').value,
+    tags,
+    note:document.getElementById('af-note').value.trim(),
+    ings
+  };
+  if(editingId !== null){
+    const idx = R.findIndex(x=>x.id===editingId);
+    if(idx>-1){ R[idx]={...R[idx],...data}; }
+    saveToStorage();
+    // refresh any plan cards using this recipe
+    plan = plan.map(p=>p.r.id===editingId?{...p,r:R[idx]}:p);
+    if(plan.length) renderAll();
+    if(dbVisible) renderDB();
+  } else {
+    R.push({id:nextId++,...data});
+    saveToStorage();
+    if(dbVisible) renderDB();
+  }
+  closeAddModal();
+  const btn=document.querySelector('[onclick="openAddModal()"]');
+  const orig=btn.textContent;
+  btn.textContent = editingId!==null ? '✓ Saved!' : '✓ Recipe added!';
+  setTimeout(()=>btn.textContent=orig,2000);
+}
+
+// ---- PERSISTENCE ----
+const LS_KEY = 'dinner-planner-recipes-v1';
+
+function saveToStorage(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(R)); } catch(e){}
+}
+
+function loadFromStorage(){
+  try{
+    const saved = localStorage.getItem(LS_KEY);
+    if(saved){
+      const data = JSON.parse(saved);
+      R.length = 0;
+      data.forEach(r=>R.push(r));
+      nextId = Math.max(...R.map(r=>r.id), 0) + 1;
+    }
+  } catch(e){}
+}
+
+function exportRecipes(){
+  const blob = new Blob([JSON.stringify(R, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dinner-recipes-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importRecipes(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error();
+      if(!confirm(`Import ${data.length} recipes? This will replace your current database.`)) return;
+      R.length = 0;
+      data.forEach(r=>R.push(r));
+      nextId = Math.max(...R.map(r=>r.id), 0) + 1;
+      saveToStorage();
+      plan = [];
+      document.getElementById('plan-section').classList.add('hidden');
+      document.getElementById('reset-btn').style.display='none';
+      if(dbVisible) renderDB();
+      alert(`✓ Imported ${R.length} recipes.`);
+    } catch(err){ alert('Could not read that file. Make sure it\'s a valid recipe export.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ---- STATE ----
+let numMeals = 4;
+let plan = [];
+let swappingIdx = null;
+
+// ---- ALGORITHM ----
+function scoreSet(recipes) {
+  const counts = {};
+  for (const r of recipes) {
+    const seen = new Set();
+    for (const i of r.ings) {
+      if (!i.p && !seen.has(i.n)) { counts[i.n] = (counts[i.n]||0)+1; seen.add(i.n); }
+    }
+  }
+  return Object.values(counts).filter(v=>v>1).reduce((a,b)=>a+(b-1),0);
+}
+
+function suggest(n) {
+  const pool = [...R];
+  const sel = [];
+  let bi=-1,bj=-1,bs=-1;
+  for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){
+    const s=scoreSet([pool[i],pool[j]]);
+    if(s>bs){bs=s;bi=i;bj=j;}
+  }
+  sel.push(pool[bi],pool[bj]);
+  pool.splice(bj,1); pool.splice(bi,1);
+  while(sel.length<n&&pool.length>0){
+    let bi2=0,bs2=-1;
+    for(let i=0;i<pool.length;i++){const s=scoreSet([...sel,pool[i]]);if(s>bs2){bs2=s;bi2=i;}}
+    sel.push(pool[bi2]); pool.splice(bi2,1);
+  }
+  return sel.map((r,i)=>({r,day:DAYS[i]||DAYS[i%7]}));
+}
+
+function getShared(plan){
+  const m={};
+  for(const{r}of plan) for(const i of r.ings) if(!i.p){
+    if(!m[i.n])m[i.n]=[];
+    if(!m[i.n].includes(r.name))m[i.n].push(r.name);
+  }
+  return Object.entries(m).filter(([,v])=>v.length>1).sort((a,b)=>b[1].length-a[1].length);
+}
+
+function getGrocery(plan){
+  const shared=new Set(getShared(plan).map(([n])=>n));
+  const byC={}, pcheck=new Set(), seen=new Set();
+  for(const{r}of plan) for(const i of r.ings){
+    if(i.p){pcheck.add(i.n);continue;}
+    if(!seen.has(i.n)){
+      seen.add(i.n);
+      if(!byC[i.c])byC[i.c]=[];
+      byC[i.c].push({n:i.n,sh:shared.has(i.n)});
+    }
+  }
+  for(const c in byC) byC[c].sort((a,b)=>(b.sh-a.sh)||a.n.localeCompare(b.n));
+  return{byC,pcheck:[...pcheck].sort()};
+}
+
+// ---- RENDER ----
+function timeTag(t){
+  if(t==='quick')return'<span class="tag tq">🟢 Quick</span>';
+  if(t==='moderate')return'<span class="tag tm">🟡 Moderate</span>';
+  return'<span class="tag tw">🔴 Weekend</span>';
+}
+
+function renderCards(){
+  document.getElementById('plan-grid').innerHTML=plan.map(({r,day},i)=>`
+    <div class="meal-card">
+      <div class="card-day">📅 ${day}</div>
+      <div class="card-name">${r.name}</div>
+      <div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>
+      <div class="card-tags">
+        ${timeTag(r.time)}
+        ${r.tags.includes('daughter-approved')?'<span class="tag td">⭐ Kid-friendly</span>':''}
+        ${r.tags.includes('fiber')?'<span class="tag tf">🥗 Fiber</span>':''}
+        ${r.tags.includes('healthy-fats')?'<span class="tag ta">🥑 Fats</span>':''}
+        ${r.tags.includes('vegetarian')?'<span class="tag tv">🌿 Veg</span>':''}
+      </div>
+      ${r.note?`<div class="card-note">${r.note}</div>`:''}
+      <div class="card-foot">
+        <select class="day-sel" onchange="setDay(${i},this.value)">
+          ${DAYS.map(d=>`<option${d===day?' selected':''}>${d}</option>`).join('')}
+        </select>
+        <button class="btn-swap" onclick="openSwap(${i})">Swap ↔</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderShared(){
+  const sh=getShared(plan);
+  const el=document.getElementById('shared-out');
+  if(!sh.length){el.innerHTML='<p style="color:var(--muted);font-size:.84rem">No overlapping ingredients — try swapping a meal.</p>';return;}
+  el.innerHTML=`<p style="font-size:.8rem;color:var(--muted);margin-bottom:.6rem">${sh.length} ingredient${sh.length>1?'s':''} shared — one purchase covers multiple meals.</p>
+    <div class="shared-pills">${sh.map(([n,rs])=>`<span class="s-pill">${n} <span class="s-ct">(${rs.length} meals)</span></span>`).join('')}</div>`;
+}
+
+function renderGrocery(){
+  const{byC,pcheck}=getGrocery(plan);
+  const cats=CAT_ORDER.filter(c=>byC[c]&&byC[c].length);
+  const grid=cats.map(c=>`
+    <div>
+      <div class="g-cat-title">${CAT[c]}</div>
+      ${byC[c].map(it=>`
+        <div class="g-item${it.sh?' shared':''}">
+          <input type="checkbox">
+          ${it.sh?'<span class="s-dot"></span>':'<span class="gap-dot"></span>'}
+          <span>${it.n}</span>
+        </div>`).join('')}
+    </div>`).join('');
+  const pantry=pcheck.length?`
+    <div class="pantry-section">
+      <div class="g-cat-title">🏠 Check pantry first</div>
+      <div class="pantry-pills">${pcheck.map(p=>`<span class="p-pill">${p}</span>`).join('')}</div>
+    </div>`:'';
+  document.getElementById('grocery-out').innerHTML=`
+    <p style="font-size:.79rem;color:var(--muted);margin-bottom:.5rem"><strong style="color:var(--accent)">●</strong> Bold + dot = shared across multiple meals</p>
+    <div class="g-grid">${grid}</div>${pantry}`;
+}
+
+function renderAll(){
+  renderCards(); renderShared(); renderGrocery();
+  document.getElementById('plan-section').classList.remove('hidden');
+  document.getElementById('reset-btn').style.display='inline-block';
+}
+
+// ---- MODAL ----
+function renderModal(){
+  const q=document.getElementById('msearch').value.toLowerCase();
+  const inPlan=new Set(plan.map(p=>p.r.id));
+  const opts=R.filter(r=>!inPlan.has(r.id)&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+  document.getElementById('modal-body').innerHTML=opts.length
+    ?opts.map(r=>`<div class="r-opt" onclick="doSwap(${r.id})">
+        <div class="r-opt-name">${r.name}</div>
+        <div class="r-opt-src">${r.src}${r.page?' · '+r.page:''}</div>
+        <div style="margin-top:.3rem">${timeTag(r.time)}</div>
+      </div>`).join('')
+    :'<div style="padding:1rem;color:var(--muted)">No recipes found.</div>';
+}
+
+function openSwap(i){swappingIdx=i;document.getElementById('msearch').value='';renderModal();document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');swappingIdx=null;}
+function doSwap(id){if(swappingIdx===null)return;const r=R.find(x=>x.id===id);if(r){plan[swappingIdx]={...plan[swappingIdx],r};closeModal();renderAll();}}
+function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+// ---- CONTROLS ----
+function setDay(i,d){plan[i].day=d;}
+function handleSuggest(){plan=suggest(numMeals);renderAll();}
+function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
+function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
+
+// ---- INIT ----
+loadFromStorage(); // load any saved recipes over the built-in defaults
+document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+</script>
+</body>
+</html>
