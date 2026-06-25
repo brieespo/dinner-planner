@@ -113,6 +113,22 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .btn-edit:hover{border-color:var(--accent);color:var(--accent)}
 .btn-del{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted)}
 .btn-del:hover{border-color:#c0392b;color:#c0392b;background:#fde8e4}
+/* Seasons */
+.season-picker{display:flex;gap:.3rem;align-items:center}
+.season-picker label{font-weight:600;font-size:.9rem;color:var(--muted);white-space:nowrap}
+.sbt{padding:.32rem .7rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s}
+.sbt:hover{border-color:var(--accent)}
+.sbt.active-spring{background:#e8f5e8;border-color:#4a9a4a;color:#2d7a2d}
+.sbt.active-summer{background:#fff8d0;border-color:#c89a00;color:#8a6800}
+.sbt.active-fall{background:#fff0e0;border-color:#c07020;color:#8a4a00}
+.sbt.active-winter{background:#e0eeff;border-color:#4a7ac0;color:#2a5a9a}
+.season-badge{font-size:.65rem;font-weight:700;padding:.1rem .38rem;border-radius:10px;display:inline-block}
+.sb-spring{background:#e8f5e8;color:#2d7a2d}
+.sb-summer{background:#fff8d0;color:#8a6800}
+.sb-fall{background:#fff0e0;color:#8a4a00}
+.sb-winter{background:#e0eeff;color:#2a5a9a}
+.in-season-note{font-size:.7rem;font-weight:700;color:#2d7a2d;margin-top:.15rem}
+.af-season-pills{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.15rem}
 /* Sides & Desserts */
 .extras-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:.5rem}
 .extras-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem}
@@ -182,6 +198,14 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   <div class="setup">
     <label>How many dinners?</label>
     <div class="num-picker" id="num-picker"></div>
+    <div class="season-picker">
+      <label>Season:</label>
+      <button class="sbt" id="sbt-" onclick="setSeason('')">All</button>
+      <button class="sbt" id="sbt-spring" onclick="setSeason('spring')">🌱 Spring</button>
+      <button class="sbt" id="sbt-summer" onclick="setSeason('summer')">☀️ Summer</button>
+      <button class="sbt" id="sbt-fall" onclick="setSeason('fall')">🍂 Fall</button>
+      <button class="sbt" id="sbt-winter" onclick="setSeason('winter')">❄️ Winter</button>
+    </div>
     <button class="btn btn-accent" onclick="handleSuggest()">✨ Suggest a week</button>
   </div>
 
@@ -196,6 +220,13 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         <option value="weekend">🔴 Weekend</option>
       </select>
       <select class="db-filter" id="db-tag" onchange="renderDB()"></select>
+      <select class="db-filter" id="db-season" onchange="renderDB()">
+        <option value="">All seasons</option>
+        <option value="spring">🌱 Spring</option>
+        <option value="summer">☀️ Summer</option>
+        <option value="fall">🍂 Fall</option>
+        <option value="winter">❄️ Winter</option>
+      </select>
       <span class="db-count" id="db-count"></span>
     </div>
     <div class="db-grid" id="db-grid"></div>
@@ -260,6 +291,15 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         <div>
           <label class="form-label">Tags</label>
           <div class="tags-grid" id="af-tags-grid" style="margin-top:.15rem"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Best seasons <span style="font-weight:400;text-transform:none">(optional — leave blank for year-round)</span></label>
+        <div class="af-season-pills" id="af-seasons">
+          <label class="tag-chk"><input type="checkbox" value="spring">🌱 Spring</label>
+          <label class="tag-chk"><input type="checkbox" value="summer">☀️ Summer</label>
+          <label class="tag-chk"><input type="checkbox" value="fall">🍂 Fall</label>
+          <label class="tag-chk"><input type="checkbox" value="winter">❄️ Winter</label>
         </div>
       </div>
       <div class="form-row">
@@ -335,6 +375,14 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const CAT = {protein:'🥩 Protein & Seafood',produce:'🥦 Produce',dairy:'🧀 Dairy',pantry:'🥫 Pantry & Canned',specialty:'✨ Specialty',frozen:'🧊 Frozen'};
 const CAT_ORDER = ['protein','produce','dairy','pantry','specialty','frozen'];
+const SEASONS = [
+  {id:'spring',label:'Spring',emoji:'🌱'},
+  {id:'summer',label:'Summer',emoji:'☀️'},
+  {id:'fall',  label:'Fall',  emoji:'🍂'},
+  {id:'winter',label:'Winter',emoji:'❄️'},
+];
+function seasonBadge(s){ return `<span class="season-badge sb-${s}">${SEASONS.find(x=>x.id===s)?.emoji||''} ${s.charAt(0).toUpperCase()+s.slice(1)}</span>`; }
+function seasonBadges(seasons){ return (seasons||[]).map(seasonBadge).join(' '); }
 
 // ---- TAGS ----
 let TAGS = [
@@ -455,7 +503,7 @@ const R = [
     {n:'bone-in chicken pieces',c:'protein'},{n:'farro',c:'pantry'},{n:'garlic',c:'produce'},{n:'watercress',c:'produce'},{n:'yuzu kosho',c:'specialty'},{n:'vinegar',c:'pantry',p:1}]},
   {id:3,name:'Chicken with Dates & Caramelized Lemon',src:'Alison Roman — Nothing Fancy',page:'p.194',time:'moderate',tags:['daughter-approved'],note:'Make with mustard croutons',ings:[
     {n:'bone-in skin-on chicken thighs',c:'protein'},{n:'Medjool dates',c:'produce'},{n:'lemon',c:'produce'},{n:'shallots',c:'produce'},{n:'fresh thyme',c:'produce'},{n:'bread (for croutons)',c:'pantry'},{n:'Dijon mustard',c:'pantry',p:1}]},
-  {id:4,name:'Sausages with Peaches, Fennel & Spinach',src:'Hot Sheet',page:'p.105',time:'quick',tags:['daughter-approved','fiber'],ings:[
+  {id:4,name:'Sausages with Peaches, Fennel & Spinach',src:'Hot Sheet',page:'p.105',time:'quick',tags:['daughter-approved','fiber'],seasons:['summer'],ings:[
     {n:'chicken apple sausages (TJ\'s)',c:'protein'},{n:'fennel bulbs',c:'produce'},{n:'shallots',c:'produce'},{n:'frozen sliced peaches',c:'frozen'},{n:'baby spinach',c:'produce'},{n:'fresh basil',c:'produce'},{n:'balsamic vinegar',c:'pantry',p:1}]},
   {id:5,name:'Cheesy Orzo with Mushrooms',src:'Hot Sheet',page:'p.195',time:'quick',tags:['vegetarian','fiber'],ings:[
     {n:'cremini mushrooms',c:'produce'},{n:'yellow onion',c:'produce'},{n:'orzo',c:'pantry'},{n:'chicken or vegetable broth',c:'pantry'},{n:'Dijon mustard',c:'pantry',p:1},{n:'burrata or fresh mozzarella',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'flat-leaf parsley',c:'produce'}]},
@@ -463,7 +511,7 @@ const R = [
     {n:'store-bought gnocchi',c:'pantry'},{n:'broccoli or broccolini',c:'produce'},{n:'goat cheese',c:'dairy'},{n:'lemon',c:'produce'},{n:'heavy cream',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'fresh basil',c:'produce'}]},
   {id:7,name:'Halal Cart-Style Street Chicken',src:'Kenji López-Alt',page:'',time:'moderate',tags:['daughter-approved'],note:'Sloane loves this one',ings:[
     {n:'boneless skinless chicken thighs',c:'protein'},{n:'lemon',c:'produce'},{n:'garlic',c:'produce'},{n:'long grain rice',c:'pantry'},{n:'chicken broth',c:'pantry'},{n:'Greek yogurt',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'pita',c:'pantry'},{n:'cherry tomatoes',c:'produce'},{n:'dried oregano',c:'pantry',p:1},{n:'turmeric',c:'pantry',p:1},{n:'cumin',c:'pantry',p:1}]},
-  {id:8,name:'Better Chicken Pot Pie',src:'Smitten Kitchen',page:'',time:'weekend',tags:[],note:'All-day project, worth it',ings:[
+  {id:8,name:'Better Chicken Pot Pie',src:'Smitten Kitchen',page:'',time:'weekend',tags:[],seasons:['fall','winter'],note:'All-day project, worth it',ings:[
     {n:'bone-in chicken',c:'protein'},{n:'leeks',c:'produce'},{n:'yellow onion',c:'produce'},{n:'dry sherry',c:'pantry'},{n:'chicken broth',c:'pantry'},{n:'carrots',c:'produce'},{n:'frozen peas',c:'frozen'},{n:'sour cream',c:'dairy'},{n:'fresh thyme',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'all-purpose flour',c:'pantry',p:1}]},
   {id:9,name:'Gingery Ground Beef & Limes',src:'Carla Lalli Music — That Sounds So Good',page:'p.60',time:'quick',tags:['healthy-fats'],ings:[
     {n:'ground beef',c:'protein'},{n:'fresh ginger',c:'produce'},{n:'garlic',c:'produce'},{n:'lime',c:'produce'},{n:'soy sauce',c:'pantry',p:1},{n:'fish sauce',c:'pantry'},{n:'fresh cilantro',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'sriracha',c:'pantry',p:1}]},
@@ -479,7 +527,7 @@ const R = [
     {n:'salmon fillets',c:'protein'},{n:'asparagus or broccolini',c:'produce'},{n:'lemon',c:'produce'},{n:'garlic',c:'produce'}]},
   {id:15,name:'Chicken Curry with Chickpeas',src:"Bri's own",page:'',time:'moderate',tags:['daughter-approved','fiber'],ings:[
     {n:'boneless chicken thighs',c:'protein'},{n:'canned diced tomatoes',c:'pantry'},{n:'chickpeas',c:'pantry'},{n:'shallots',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'cumin',c:'pantry',p:1},{n:'coriander',c:'pantry',p:1},{n:'turmeric',c:'pantry',p:1},{n:'garam masala',c:'pantry',p:1}]},
-  {id:16,name:'Viral Baked Feta Pasta',src:"Bri's own",page:'',time:'moderate',tags:[],ings:[
+  {id:16,name:'Viral Baked Feta Pasta',src:"Bri's own",page:'',time:'moderate',tags:[],seasons:['summer'],ings:[
     {n:'block feta',c:'dairy'},{n:'cherry tomatoes',c:'produce'},{n:'pasta',c:'pantry'},{n:'garlic',c:'produce'},{n:'fresh basil',c:'produce'}]},
   {id:17,name:'Stewed Chicken with Sour Cream Dumplings',src:'Julia Turshen — Simply Julia',page:'p.94',time:'moderate',tags:['daughter-approved'],ings:[
     {n:'chicken breasts',c:'protein'},{n:'chicken stock',c:'pantry'},{n:'carrots',c:'produce'},{n:'baby spinach',c:'produce'},{n:'sour cream',c:'dairy'},{n:'fresh chives',c:'produce'},{n:'all-purpose flour',c:'pantry',p:1}]},
@@ -487,13 +535,13 @@ const R = [
     {n:'boneless skinless chicken thighs',c:'protein'},{n:'garlic',c:'produce'},{n:'jasmine rice',c:'pantry'},{n:'ketchup',c:'pantry',p:1},{n:'honey',c:'pantry',p:1},{n:'soy sauce',c:'pantry',p:1},{n:'chili garlic sauce',c:'pantry',p:1},{n:'cornstarch',c:'pantry',p:1}]},
   {id:19,name:'Spinach + Artichoke Dip Chicken Bake',src:'Julia Turshen — Simply Julia',page:'p.81',time:'quick',tags:[],ings:[
     {n:'boneless skinless chicken thighs',c:'protein'},{n:'garlic',c:'produce'},{n:'frozen leaf spinach',c:'frozen'},{n:'canned artichoke hearts',c:'pantry'},{n:'sour cream',c:'dairy'},{n:'parmesan',c:'dairy'}]},
-  {id:20,name:"My Mother-in-Law's Brunswick Stew",src:'Julia Turshen — Simply Julia',page:'p.114',time:'moderate',tags:['daughter-approved'],note:'Better the next day — make ahead',ings:[
+  {id:20,name:"My Mother-in-Law's Brunswick Stew",src:'Julia Turshen — Simply Julia',page:'p.114',time:'moderate',tags:['daughter-approved'],seasons:['fall','winter'],note:'Better the next day — make ahead',ings:[
     {n:'rotisserie chicken',c:'protein'},{n:'bacon',c:'protein'},{n:'yellow onion',c:'produce'},{n:'canned diced tomatoes',c:'pantry'},{n:'frozen lima beans',c:'frozen'},{n:'fresh or frozen corn',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'all-purpose flour',c:'pantry',p:1}]},
-  {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],ings:[
+  {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],seasons:['spring'],ings:[
     {n:'store-bought gnocchi',c:'pantry'},{n:'frozen peas',c:'frozen'},{n:'asparagus',c:'produce'},{n:'parmesan',c:'dairy'},{n:'garlic',c:'produce'},{n:'lemon',c:'produce'},{n:'fresh mint',c:'produce'},{n:'butter',c:'dairy',p:1}]},
-  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:['slow-cooker'],note:'Slow cooker dump-and-forget',ings:[
+  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:['slow-cooker'],seasons:['fall','winter'],note:'Slow cooker dump-and-forget',ings:[
     {n:'chuck roast',c:'protein'},{n:'ranch seasoning packet',c:'specialty'},{n:'au jus mix packet',c:'specialty'},{n:'pepperoncini peppers (whole jar)',c:'pantry'},{n:'butter',c:'dairy',p:1}]},
-  {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],ings:[
+  {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],seasons:['fall','winter'],ings:[
     {n:'acorn squash',c:'produce'},{n:'garlic',c:'produce'},{n:'pine nuts',c:'specialty'},{n:'feta cheese',c:'dairy'},{n:'butter',c:'dairy',p:1}]},
   {id:24,name:'Simple Tuna Patties',src:'Bon Appétit',page:'',time:'quick',tags:['daughter-approved'],note:'Sloane may eat these',ings:[
     {n:'canned tuna in olive oil',c:'pantry'},{n:'eggs',c:'dairy'},{n:'lemon',c:'produce'},{n:'mayonnaise',c:'pantry',p:1},{n:'panko breadcrumbs',c:'pantry',p:1},{n:'Dijon mustard',c:'pantry',p:1}]},
@@ -503,7 +551,7 @@ const R = [
     {n:'boneless skinless chicken thighs',c:'protein'},{n:'white miso',c:'specialty'},{n:'fresh ginger',c:'produce'},{n:'garlic',c:'produce'},{n:'honey',c:'pantry',p:1},{n:'soy sauce',c:'pantry',p:1},{n:'rice vinegar',c:'pantry',p:1},{n:'chile-garlic sauce',c:'pantry',p:1}]},
   {id:27,name:'Beans and Greens Alla Vodka',src:'NYT Easy Weeknight Dinners',page:'p.196',time:'quick',tags:['vegetarian','fiber'],ings:[
     {n:'yellow onion',c:'produce'},{n:'garlic',c:'produce'},{n:'white beans (2 cans)',c:'pantry'},{n:'baby spinach',c:'produce'},{n:'heavy cream',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'tomato paste',c:'pantry',p:1},{n:'vodka',c:'pantry',p:1}]},
-  {id:28,name:'Lentils with Wine-Glazed Vegetables',src:'Deborah Madison — Vegetarian Cooking for Everyone',page:'',time:'moderate',tags:['vegetarian','fiber'],note:'Can top with puff pastry for pot pie version',ings:[
+  {id:28,name:'Lentils with Wine-Glazed Vegetables',src:'Deborah Madison — Vegetarian Cooking for Everyone',page:'',time:'moderate',tags:['vegetarian','fiber'],seasons:['fall','winter'],note:'Can top with puff pastry for pot pie version',ings:[
     {n:'French green or Beluga lentils',c:'pantry'},{n:'yellow onion',c:'produce'},{n:'carrot',c:'produce'},{n:'celery',c:'produce'},{n:'garlic',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'flat-leaf parsley',c:'produce'},{n:'tomato paste',c:'pantry',p:1},{n:'Dijon mustard',c:'pantry',p:1},{n:'butter',c:'dairy',p:1},{n:'puff pastry (optional)',c:'frozen'}]},
   {id:29,name:'Sheet Pan Chicken Thighs with Mustard Croutons',src:"Bri's own",page:'',time:'moderate',tags:[],ings:[
     {n:'bone-in skin-on chicken thighs',c:'protein'},{n:'bread (for croutons)',c:'pantry'},{n:'butter',c:'dairy',p:1},{n:'Dijon mustard',c:'pantry',p:1}]},
@@ -515,9 +563,9 @@ const R = [
     {n:'bone-in chicken thighs',c:'protein'},{n:'shallots',c:'produce'},{n:'pearled couscous',c:'pantry'},{n:'garlic',c:'produce'},{n:'fresh dill',c:'produce'},{n:'chicken bouillon cube',c:'pantry'},{n:'vinegar',c:'pantry',p:1}]},
   {id:33,name:'One-Pot Baked Risotto with Tomatoes & Burrata',src:'Caroline Gelen — Pass the Plate',page:'p.150',time:'moderate',tags:['vegetarian'],ings:[
     {n:'arborio rice',c:'pantry'},{n:'shallot',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'whole head of garlic',c:'produce'},{n:'parmesan',c:'dairy'},{n:'burrata',c:'dairy'},{n:'fresh thyme or oregano',c:'produce'},{n:'tomato paste',c:'pantry',p:1},{n:'butter',c:'dairy',p:1}]},
-  {id:34,name:'Salmon Kebabs with Nigella',src:'Flavors of the Sun',page:'p.132',time:'moderate',tags:['healthy-fats'],note:"⭐ 'One of my favorite salmon recipes ever' — marinate 2 hrs ahead",ings:[
+  {id:34,name:'Salmon Kebabs with Nigella',src:'Flavors of the Sun',page:'p.132',time:'moderate',tags:['healthy-fats'],seasons:['summer'],note:"⭐ 'One of my favorite salmon recipes ever' — marinate 2 hrs ahead",ings:[
     {n:'center-cut skinless salmon fillet (2 lbs)',c:'protein'},{n:'fresh parsley',c:'produce'},{n:'fresh mint',c:'produce'},{n:'fresh chives',c:'produce'},{n:'Aleppo pepper',c:'specialty'},{n:'nigella seeds',c:'specialty'},{n:'red onion',c:'produce'},{n:'lemon',c:'produce'},{n:'cumin',c:'pantry',p:1}]},
-  {id:35,name:'Roasted Cauliflower Salad with Lentils & Dates',src:'Flavors of the Sun',page:'p.306',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],ings:[
+  {id:35,name:'Roasted Cauliflower Salad with Lentils & Dates',src:'Flavors of the Sun',page:'p.306',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],seasons:['fall'],ings:[
     {n:'cauliflower',c:'produce'},{n:'French green lentils',c:'pantry'},{n:'Medjool dates',c:'produce'},{n:'scallions',c:'produce'},{n:'baby spinach or arugula',c:'produce'},{n:'roasted almonds',c:'specialty'},{n:'tahini',c:'pantry'},{n:'lemon',c:'produce'},{n:'fresh mint',c:'produce'},{n:'honey',c:'pantry',p:1}]},
   {id:36,name:'Beef and Lentil Bowl with Tahini Dressing',src:'Flavors of the Sun',page:'p.262',time:'moderate',tags:['fiber','healthy-fats'],note:"Crispy onions are key — don't rush them",ings:[
     {n:'beef top round (thin strips)',c:'protein'},{n:'shawarma spices',c:'specialty'},{n:'yellow onion',c:'produce'},{n:'French lentils',c:'pantry'},{n:'jasmine rice',c:'pantry'},{n:'tahini',c:'pantry'},{n:'lemon',c:'produce'},{n:'flat-leaf parsley',c:'produce'},{n:'garlic',c:'produce'},{n:'Persian cucumbers',c:'produce'},{n:'grape tomatoes',c:'produce'},{n:'dry red wine',c:'pantry',p:1}]},
@@ -545,6 +593,7 @@ function renderDB(){
   const q = document.getElementById('db-search').value.toLowerCase();
   const tFilter = document.getElementById('db-time').value;
   const tagFilter = document.getElementById('db-tag').value;
+  const seasonFilter = document.getElementById('db-season').value;
   let recipes = R.filter(r=>{
     if(q){
       const inName = r.name.toLowerCase().includes(q);
@@ -554,6 +603,7 @@ function renderDB(){
     }
     if(tFilter && r.time !== tFilter) return false;
     if(tagFilter && !r.tags.includes(tagFilter)) return false;
+    if(seasonFilter && !r.seasons?.includes(seasonFilter)) return false;
     return true;
   });
   document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
@@ -567,6 +617,7 @@ function renderDB(){
         ${timeTag(r.time,r.tags)}
         ${renderTagChips(r.tags)}
       </div>
+      ${r.seasons?.length?`<div style="margin:.1rem 0">${seasonBadges(r.seasons)}</div>`:''}
       ${r.note?`<div class="card-note" style="font-size:.72rem">${r.note}</div>`:''}
       <div class="db-card-ings">${r.ings.map(i=>i.n).join(', ')}</div>
       <div class="db-card-foot">
@@ -616,6 +667,7 @@ function openAddModal(){
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
   document.getElementById('af-err').textContent='';
+  document.querySelectorAll('#af-seasons input').forEach(cb=>cb.checked=false);
   rebuildTagUI(); // render checkboxes fresh with no checked state
   const list=document.getElementById('af-ings');
   list.innerHTML='';
@@ -635,6 +687,8 @@ function openEditModal(id){
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
   document.getElementById('af-err').textContent = '';
+  // seasons
+  document.querySelectorAll('#af-seasons input').forEach(cb=>{ cb.checked=(r.seasons||[]).includes(cb.value); });
   // render tag checkboxes, then check the ones on this recipe
   document.getElementById('af-tags-grid').innerHTML = TAGS.map(t=>`<label class="tag-chk"><input type="checkbox" value="${t.id}"${r.tags.includes(t.id)?' checked':''}>${t.emoji?t.emoji+' ':''}${t.label}</label>`).join('');
   const list=document.getElementById('af-ings');
@@ -657,12 +711,14 @@ function saveRecipe(){
     p:row.querySelector('input[type=checkbox]').checked?1:undefined
   })).filter(i=>i.n);
   const tags=[...document.querySelectorAll('#af-tags-grid input')].filter(cb=>cb.checked).map(cb=>cb.value);
+  const seasons=[...document.querySelectorAll('#af-seasons input')].filter(cb=>cb.checked).map(cb=>cb.value);
   const data={
     name,
     src:document.getElementById('af-src').value.trim()||"Bri's own",
     page:document.getElementById('af-page').value.trim(),
     time:document.getElementById('af-time').value,
     tags,
+    seasons,
     note:document.getElementById('af-note').value.trim(),
     ings
   };
@@ -840,6 +896,20 @@ let swappingIdx = null;
 let swapShowAll = false;
 let modalMode = 'swap'; // 'swap' | 'side' | 'dessert'
 let showExtras = false;
+let currentSeason = '';
+
+function setSeason(s){
+  currentSeason = s;
+  SEASONS.forEach(x=>{ document.getElementById('sbt-'+x.id)?.classList.remove('active-'+x.id); });
+  document.getElementById('sbt-')?.classList.remove(...['spring','summer','fall','winter'].map(x=>'active-'+x));
+  if(s){ document.getElementById('sbt-'+s)?.classList.add('active-'+s); }
+  else { document.getElementById('sbt-').classList.add('active-none'); }
+  // re-render cards to show in-season badges
+  if(plan.length) renderCards();
+}
+
+function isInSeason(r){ return !currentSeason || !r.seasons?.length || r.seasons.includes(currentSeason); }
+function isPreferredSeason(r){ return currentSeason && r.seasons?.length && r.seasons.includes(currentSeason); }
 
 // ---- SIDES & DESSERTS ----
 function toggleExtras(){
@@ -905,7 +975,12 @@ function suggest(n) {
   const result = [];
   const used = new Set();
   const isMain = r => !r.tags.includes('side') && !r.tags.includes('dessert');
-  const fp = (rules) => R.filter(r => !used.has(r.id) && isMain(r) && passesRules(r, rules||null));
+  const fp = (rules) => {
+    const all = R.filter(r => !used.has(r.id) && isMain(r) && passesRules(r, rules||null));
+    if(!currentSeason) return all;
+    const seasonal = all.filter(r => isPreferredSeason(r));
+    return seasonal.length >= 1 ? seasonal : all; // prefer seasonal, fall back if pool too small
+  };
   const bestGreedy = (pool, existing) => {
     let best=pool[0], bs=-1;
     for(const r of pool){ const s=scoreSet([...existing,r]); if(s>bs){bs=s;best=r;} }
@@ -986,6 +1061,8 @@ function renderCards(){
     <div class="meal-card">
       <div class="card-day">📅 ${day}${hasRules(day)?` <span style="font-size:.62rem;background:var(--accent-light);color:var(--accent);padding:.08rem .35rem;border-radius:8px;font-weight:700" title="${ruleSummary(day)}">Rules set</span>`:''}</div>
       ${(()=>{const rules=DAY_RULES[day];return rules&&!passesRules(r,rules)?`<div class="card-violation">⚠ Doesn't match ${day}'s rules</div>`:''})()}
+      ${currentSeason&&r.seasons?.length?`<div class="${r.seasons.includes(currentSeason)?'in-season-note':''}">
+        ${r.seasons.includes(currentSeason)?'✓ In season — ':''}${seasonBadges(r.seasons)}</div>`:''}
       <div class="card-name">${r.name}</div>
       <div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>
       <div class="card-tags">
@@ -1117,6 +1194,7 @@ loadTagsFromStorage();
 loadRulesFromStorage();
 loadFromStorage();
 rebuildTagUI();
+document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
 document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
 </script>
 </body>
