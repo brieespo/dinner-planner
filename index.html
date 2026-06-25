@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dinner Planner</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
@@ -35,6 +36,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .tq{background:#e8f3ec;color:var(--quick)}
 .tm{background:#fdf3e0;color:var(--mod)}
 .tw{background:#fde8e4;color:var(--wknd)}
+.ts{background:#e0eeff;color:#2a5a9a}
 .td{background:#fce8ff;color:#7a3080}
 .tf{background:#e4f0e4;color:#3a6a3a}
 .ta{background:#fff8e0;color:#a07020}
@@ -111,6 +113,47 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .btn-edit:hover{border-color:var(--accent);color:var(--accent)}
 .btn-del{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted)}
 .btn-del:hover{border-color:#c0392b;color:#c0392b;background:#fde8e4}
+/* Sides & Desserts */
+.extras-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:.5rem}
+.extras-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.card-extras{border-top:1px solid var(--border);padding-top:.6rem;margin-top:.35rem;display:flex;flex-direction:column;gap:.45rem}
+.extra-row{display:flex;align-items:center;gap:.4rem;min-height:1.6rem}
+.extra-label{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:52px}
+.extra-filled{flex:1;display:flex;align-items:center;gap:.35rem;min-width:0}
+.extra-name{font-size:.76rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.btn-extra{padding:.2rem .55rem;font-size:.72rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);white-space:nowrap}
+.btn-extra:hover{border-color:var(--accent);color:var(--accent)}
+.btn-extra-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:0 .15rem;line-height:1;flex-shrink:0}
+.btn-extra-rm:hover{color:#c0392b}
+/* Day Rules */
+.rules-modal{background:#fff;border-radius:12px;width:100%;max-width:600px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.rule-row{display:grid;grid-template-columns:95px 1fr;gap:.7rem;align-items:start;padding:.85rem 0;border-bottom:1px solid var(--border)}
+.rule-row:last-child{border-bottom:none}
+.rule-day-name{font-size:.88rem;font-weight:700;padding-top:.42rem;color:var(--text)}
+.rule-day-name.has-rule{color:var(--accent)}
+.rule-controls{display:flex;flex-direction:column;gap:.4rem}
+.rule-time-sel{width:100%;padding:.36rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
+.rule-time-sel:focus,.rule-time-sel.constrained{border-color:var(--accent)}
+.rule-tag-pills{display:flex;flex-wrap:wrap;gap:.3rem}
+.rule-tag-pill{font-size:.74rem;font-weight:600;padding:.14rem .5rem;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);user-select:none;transition:all .12s}
+.rule-tag-pill.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.rule-clear{font-size:.72rem;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;margin-top:.1rem;width:fit-content}
+.rule-clear:hover{color:var(--accent)}
+.modal-note{padding:.55rem 1.25rem;background:var(--accent-light);border-bottom:1px solid var(--border);font-size:.79rem;color:var(--accent)}
+.modal-note a{color:var(--accent);cursor:pointer;font-weight:600}
+.card-violation{font-size:.69rem;color:#c0392b;margin-top:.15rem}
+/* Tag manager */
+.tm-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.tm-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .65rem;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+.tm-preview{font-size:.78rem;font-weight:600;padding:.15rem .5rem;border-radius:20px}
+.tm-label{flex:1;font-size:.84rem}
+.tm-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:.1rem .3rem;border-radius:3px}
+.tm-del:hover{color:#c0392b;background:#fde8e4}
+.tm-add-row{display:flex;gap:.5rem;align-items:center;padding-top:.75rem;border-top:1px solid var(--border)}
+.tm-emoji{width:52px;padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.9rem;text-align:center;outline:none}
+.tm-emoji:focus{border-color:var(--accent)}
+.tm-new-label{flex:1;padding:.4rem .65rem;border:1px solid var(--border);border-radius:5px;font-size:.84rem;font-family:inherit;outline:none}
+.tm-new-label:focus{border-color:var(--accent)}
 @media print{
   header .print-hide{display:none}
   .setup,.btn-swap,.modal-bg{display:none!important}
@@ -127,6 +170,8 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
     <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
     <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
+    <button class="btn btn-outline" onclick="openRulesModal()">📋 Day Rules</button>
+    <button class="btn btn-outline" onclick="openManageTagsModal()">🏷 Tags</button>
     <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
     <label class="btn btn-outline" style="cursor:pointer" title="Restore recipes from a backup file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importRecipes(event)"></label>
     <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
@@ -143,27 +188,29 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   <!-- Database view -->
   <div id="db-section" class="hidden">
     <div class="db-bar">
-      <input class="db-search" id="db-search" type="text" placeholder="Search by name or cookbook…" oninput="renderDB()">
+      <input class="db-search" id="db-search" type="text" placeholder="Search by name, cookbook, or ingredient…" oninput="renderDB()">
       <select class="db-filter" id="db-time" onchange="renderDB()">
         <option value="">All times</option>
         <option value="quick">🟢 Quick</option>
         <option value="moderate">🟡 Moderate</option>
         <option value="weekend">🔴 Weekend</option>
       </select>
-      <select class="db-filter" id="db-tag" onchange="renderDB()">
-        <option value="">All tags</option>
-        <option value="daughter-approved">⭐ Kid-friendly</option>
-        <option value="vegetarian">🌿 Vegetarian</option>
-        <option value="fiber">🥗 Fiber</option>
-        <option value="healthy-fats">🥑 Healthy fats</option>
-      </select>
+      <select class="db-filter" id="db-tag" onchange="renderDB()"></select>
       <span class="db-count" id="db-count"></span>
     </div>
     <div class="db-grid" id="db-grid"></div>
   </div>
 
   <div id="plan-section" class="hidden">
-    <div class="section-title">📅 This Week's Plan</div>
+    <div class="extras-header">
+      <div class="section-title" style="margin-bottom:0">📅 This Week's Plan</div>
+      <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+    </div>
+    <div id="extras-bar" class="hidden extras-bar">
+      <button class="btn-ghost" onclick="suggestAllSides()">🎲 Suggest all sides</button>
+      <button class="btn-ghost" onclick="suggestAllDesserts()">🍰 Suggest all desserts</button>
+      <button class="btn-ghost" onclick="clearAllExtras()">✕ Clear all</button>
+    </div>
     <div class="plan-grid" id="plan-grid"></div>
 
     <div class="box">
@@ -212,12 +259,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         </div>
         <div>
           <label class="form-label">Tags</label>
-          <div class="tags-grid" style="margin-top:.15rem">
-            <label class="tag-chk"><input type="checkbox" value="daughter-approved">⭐ Kid-friendly</label>
-            <label class="tag-chk"><input type="checkbox" value="vegetarian">🌿 Vegetarian</label>
-            <label class="tag-chk"><input type="checkbox" value="fiber">🥗 Fiber</label>
-            <label class="tag-chk"><input type="checkbox" value="healthy-fats">🥑 Healthy fats</label>
-          </div>
+          <div class="tags-grid" id="af-tags-grid" style="margin-top:.15rem"></div>
         </div>
       </div>
       <div class="form-row">
@@ -238,13 +280,53 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   </div>
 </div>
 
+<!-- Day Rules Modal -->
+<div class="modal-bg" id="rules-modal" onclick="bgRulesClick(event)">
+  <div class="rules-modal">
+    <div class="modal-head">
+      <strong>Day Rules</strong>
+      <span style="flex:1"></span>
+      <button class="modal-x" onclick="closeRulesModal()">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;padding:1rem 1.25rem;display:block">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">Rules apply when suggesting a week and when browsing swaps. Days with rules are highlighted on plan cards.</p>
+      <div id="rules-list"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-accent btn-sm" onclick="closeRulesModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Tags Modal -->
+<div class="modal-bg" id="tags-modal" onclick="bgTagsClick(event)">
+  <div class="add-modal" style="max-width:420px">
+    <div class="modal-head">
+      <strong>Manage Tags</strong>
+      <span style="flex:1"></span>
+      <button class="modal-x" onclick="closeManageTagsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.85rem">Tags appear on recipe cards and as filters in the database. Deleting a tag removes it from all recipes.</p>
+      <div class="tm-list" id="tm-list"></div>
+      <div class="tm-add-row">
+        <input class="tm-emoji" id="tm-emoji" type="text" placeholder="🍜" maxlength="4">
+        <input class="tm-new-label" id="tm-label" type="text" placeholder="New tag name (e.g. Meal prep)" onkeydown="if(event.key==='Enter')addTag()">
+        <button class="btn btn-accent btn-sm" onclick="addTag()">Add</button>
+      </div>
+      <div id="tm-err" style="font-size:.78rem;color:#c0392b;margin-top:.45rem;min-height:1rem"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal" onclick="bgClick(event)">
   <div class="modal">
     <div class="modal-head">
-      <strong>Choose a recipe</strong>
+      <strong id="modal-title">Choose a recipe</strong>
       <input class="modal-search" id="msearch" type="text" placeholder="Search…" oninput="renderModal()">
       <button class="modal-x" onclick="closeModal()">✕</button>
     </div>
+    <div id="modal-note" style="display:none" class="modal-note"></div>
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
@@ -253,6 +335,118 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const CAT = {protein:'🥩 Protein & Seafood',produce:'🥦 Produce',dairy:'🧀 Dairy',pantry:'🥫 Pantry & Canned',specialty:'✨ Specialty',frozen:'🧊 Frozen'};
 const CAT_ORDER = ['protein','produce','dairy','pantry','specialty','frozen'];
+
+// ---- TAGS ----
+let TAGS = [
+  {id:'daughter-approved', label:'Kid-friendly', emoji:'⭐'},
+  {id:'vegetarian',        label:'Vegetarian',   emoji:'🌿'},
+  {id:'fiber',             label:'Fiber',        emoji:'🥗'},
+  {id:'healthy-fats',      label:'Healthy fats', emoji:'🥑'},
+  {id:'slow-cooker',       label:'Slow Cooker',  emoji:'🥘'},
+  {id:'side',              label:'Side dish',    emoji:'🥗'},
+  {id:'dessert',           label:'Dessert',      emoji:'🍰'},
+];
+const LS_TAGS_KEY = 'dinner-planner-tags-v1';
+const TAG_PALETTE = [
+  {bg:'#fce8ff',color:'#7a3080'},{bg:'#e4f0e4',color:'#3a6a3a'},
+  {bg:'#fff8e0',color:'#a07020'},{bg:'#eaf0ea',color:'#336633'},
+  {bg:'#e8f0ff',color:'#2a4a8a'},{bg:'#ffe8f0',color:'#8a2a4a'},
+  {bg:'#f0ffe8',color:'#2a6a1a'},{bg:'#fff0e0',color:'#8a4a00'},
+  {bg:'#e8ffff',color:'#1a6a6a'},{bg:'#f8e8ff',color:'#6a1a8a'},
+];
+
+function tagStyle(idx){ return TAG_PALETTE[idx % TAG_PALETTE.length]; }
+
+function renderTagChip(tagId){
+  const idx = TAGS.findIndex(t=>t.id===tagId);
+  if(idx<0) return `<span class="tag" style="background:#f0f0f0;color:#888">${tagId}</span>`;
+  const t = TAGS[idx]; const s = tagStyle(idx);
+  return `<span class="tag" style="background:${s.bg};color:${s.color}">${t.emoji?t.emoji+' ':''}${t.label}</span>`;
+}
+
+function renderTagChips(tags){ return tags.map(renderTagChip).join(''); }
+
+function rebuildTagUI(){
+  // DB filter
+  const sel = document.getElementById('db-tag');
+  if(sel){
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All tags</option>' +
+      TAGS.map(t=>`<option value="${t.id}">${t.emoji?t.emoji+' ':''}${t.label}</option>`).join('');
+    sel.value = cur;
+  }
+  // Add/edit modal tag checkboxes
+  const grid = document.getElementById('af-tags-grid');
+  if(grid){
+    const checked = new Set([...grid.querySelectorAll('input:checked')].map(cb=>cb.value));
+    grid.innerHTML = TAGS.map(t=>`<label class="tag-chk"><input type="checkbox" value="${t.id}"${checked.has(t.id)?' checked':''}>${t.emoji?t.emoji+' ':''}${t.label}</label>`).join('');
+  }
+}
+
+function saveTagsToStorage(){ try{ localStorage.setItem(LS_TAGS_KEY, JSON.stringify(TAGS)); }catch(e){} }
+function loadTagsFromStorage(){
+  try{
+    const saved = localStorage.getItem(LS_TAGS_KEY);
+    if(saved){ TAGS = JSON.parse(saved); }
+  }catch(e){}
+}
+
+// ---- TAG MANAGER ----
+function openManageTagsModal(){
+  renderTagsManager();
+  document.getElementById('tm-emoji').value='';
+  document.getElementById('tm-label').value='';
+  document.getElementById('tm-err').textContent='';
+  document.getElementById('tags-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('tm-label').focus(),80);
+}
+function closeManageTagsModal(){ document.getElementById('tags-modal').classList.remove('open'); }
+function bgTagsClick(e){ if(e.target===document.getElementById('tags-modal')) closeManageTagsModal(); }
+
+function renderTagsManager(){
+  document.getElementById('tm-list').innerHTML = TAGS.length ? TAGS.map((t,i)=>{
+    const s = tagStyle(i);
+    return `<div class="tm-item">
+      <span class="tm-preview" style="background:${s.bg};color:${s.color}">${t.emoji?t.emoji+' ':''}${t.label}</span>
+      <span class="tm-label">${t.label}</span>
+      <button class="tm-del" onclick="deleteTag('${t.id}')" title="Delete tag">✕</button>
+    </div>`;
+  }).join('') : '<p style="font-size:.82rem;color:var(--muted)">No tags yet.</p>';
+}
+
+function addTag(){
+  const emoji = document.getElementById('tm-emoji').value.trim();
+  const label = document.getElementById('tm-label').value.trim();
+  const err = document.getElementById('tm-err');
+  if(!label){ err.textContent='Enter a tag name.'; return; }
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  if(TAGS.find(t=>t.id===id)){ err.textContent='A tag with that name already exists.'; return; }
+  err.textContent='';
+  TAGS.push({id, label, emoji});
+  saveTagsToStorage();
+  renderTagsManager();
+  rebuildTagUI();
+  if(dbVisible) renderDB();
+  document.getElementById('tm-emoji').value='';
+  document.getElementById('tm-label').value='';
+  document.getElementById('tm-label').focus();
+}
+
+function deleteTag(id){
+  const t = TAGS.find(x=>x.id===id);
+  const usedIn = R.filter(r=>r.tags.includes(id)).map(r=>r.name);
+  if(usedIn.length){
+    if(!confirm(`"${t.label}" is used by ${usedIn.length} recipe${usedIn.length>1?'s':''}:\n${usedIn.slice(0,5).join(', ')}${usedIn.length>5?'…':''}\n\nDelete tag and remove it from those recipes?`)) return;
+    R.forEach(r=>{ r.tags = r.tags.filter(x=>x!==id); });
+    saveToStorage();
+  }
+  TAGS = TAGS.filter(x=>x.id!==id);
+  saveTagsToStorage();
+  renderTagsManager();
+  rebuildTagUI();
+  if(plan.length) renderAll();
+  if(dbVisible) renderDB();
+}
 
 const R = [
   {id:1,name:'Cumin-Roasted Cauliflower & Dates',src:'Alison Roman — Dining In',page:'p.51',time:'quick',tags:['vegetarian','fiber','healthy-fats'],note:'Pair with salmon or protein — not standalone',ings:[
@@ -297,7 +491,7 @@ const R = [
     {n:'rotisserie chicken',c:'protein'},{n:'bacon',c:'protein'},{n:'yellow onion',c:'produce'},{n:'canned diced tomatoes',c:'pantry'},{n:'frozen lima beans',c:'frozen'},{n:'fresh or frozen corn',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'all-purpose flour',c:'pantry',p:1}]},
   {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],ings:[
     {n:'store-bought gnocchi',c:'pantry'},{n:'frozen peas',c:'frozen'},{n:'asparagus',c:'produce'},{n:'parmesan',c:'dairy'},{n:'garlic',c:'produce'},{n:'lemon',c:'produce'},{n:'fresh mint',c:'produce'},{n:'butter',c:'dairy',p:1}]},
-  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:[],note:'Slow cooker dump-and-forget',ings:[
+  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:['slow-cooker'],note:'Slow cooker dump-and-forget',ings:[
     {n:'chuck roast',c:'protein'},{n:'ranch seasoning packet',c:'specialty'},{n:'au jus mix packet',c:'specialty'},{n:'pepperoncini peppers (whole jar)',c:'pantry'},{n:'butter',c:'dairy',p:1}]},
   {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],ings:[
     {n:'acorn squash',c:'produce'},{n:'garlic',c:'produce'},{n:'pine nuts',c:'specialty'},{n:'feta cheese',c:'dairy'},{n:'butter',c:'dairy',p:1}]},
@@ -352,7 +546,12 @@ function renderDB(){
   const tFilter = document.getElementById('db-time').value;
   const tagFilter = document.getElementById('db-tag').value;
   let recipes = R.filter(r=>{
-    if(q && !r.name.toLowerCase().includes(q) && !r.src.toLowerCase().includes(q)) return false;
+    if(q){
+      const inName = r.name.toLowerCase().includes(q);
+      const inSrc  = r.src.toLowerCase().includes(q);
+      const inIngs = r.ings.some(i=>i.n.toLowerCase().includes(q));
+      if(!inName && !inSrc && !inIngs) return false;
+    }
     if(tFilter && r.time !== tFilter) return false;
     if(tagFilter && !r.tags.includes(tagFilter)) return false;
     return true;
@@ -365,11 +564,8 @@ function renderDB(){
         <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
       </div>
       <div class="card-tags" style="margin:.1rem 0">
-        ${timeTag(r.time)}
-        ${r.tags.includes('daughter-approved')?'<span class="tag td">⭐ Kid</span>':''}
-        ${r.tags.includes('vegetarian')?'<span class="tag tv">🌿 Veg</span>':''}
-        ${r.tags.includes('fiber')?'<span class="tag tf">🥗 Fiber</span>':''}
-        ${r.tags.includes('healthy-fats')?'<span class="tag ta">🥑 Fats</span>':''}
+        ${timeTag(r.time,r.tags)}
+        ${renderTagChips(r.tags)}
       </div>
       ${r.note?`<div class="card-note" style="font-size:.72rem">${r.note}</div>`:''}
       <div class="db-card-ings">${r.ings.map(i=>i.n).join(', ')}</div>
@@ -420,7 +616,7 @@ function openAddModal(){
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
   document.getElementById('af-err').textContent='';
-  document.querySelectorAll('#add-modal .tag-chk input').forEach(cb=>cb.checked=false);
+  rebuildTagUI(); // render checkboxes fresh with no checked state
   const list=document.getElementById('af-ings');
   list.innerHTML='';
   addIngRow();
@@ -439,7 +635,8 @@ function openEditModal(id){
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
   document.getElementById('af-err').textContent = '';
-  document.querySelectorAll('#add-modal .tag-chk input').forEach(cb=>{cb.checked=r.tags.includes(cb.value);});
+  // render tag checkboxes, then check the ones on this recipe
+  document.getElementById('af-tags-grid').innerHTML = TAGS.map(t=>`<label class="tag-chk"><input type="checkbox" value="${t.id}"${r.tags.includes(t.id)?' checked':''}>${t.emoji?t.emoji+' ':''}${t.label}</label>`).join('');
   const list=document.getElementById('af-ings');
   list.innerHTML='';
   (r.ings.length ? r.ings : [{}]).forEach(i=>addIngRow(i.n||'',i.c||'produce',!!i.p));
@@ -459,7 +656,7 @@ function saveRecipe(){
     c:row.querySelector('.ing-cat').value,
     p:row.querySelector('input[type=checkbox]').checked?1:undefined
   })).filter(i=>i.n);
-  const tags=[...document.querySelectorAll('#add-modal .tag-chk input')].filter(cb=>cb.checked).map(cb=>cb.value);
+  const tags=[...document.querySelectorAll('#af-tags-grid input')].filter(cb=>cb.checked).map(cb=>cb.value);
   const data={
     name,
     src:document.getElementById('af-src').value.trim()||"Bri's own",
@@ -509,10 +706,10 @@ function loadFromStorage(){
 }
 
 function exportRecipes(){
-  const blob = new Blob([JSON.stringify(R, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({recipes:R, tags:TAGS, rules:DAY_RULES}, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `dinner-recipes-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `dinner-planner-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -524,27 +721,172 @@ function importRecipes(e){
   reader.onload = ev => {
     try{
       const data = JSON.parse(ev.target.result);
-      if(!Array.isArray(data)) throw new Error();
-      if(!confirm(`Import ${data.length} recipes? This will replace your current database.`)) return;
+      // support both old format (array) and new format ({recipes, tags})
+      const recipes = Array.isArray(data) ? data : data.recipes;
+      const tags = Array.isArray(data) ? null : data.tags;
+      if(!Array.isArray(recipes)) throw new Error();
+      if(!confirm(`Import ${recipes.length} recipes${tags?` and ${tags.length} tags`:''}? This will replace your current database.`)) return;
       R.length = 0;
-      data.forEach(r=>R.push(r));
+      recipes.forEach(r=>R.push(r));
       nextId = Math.max(...R.map(r=>r.id), 0) + 1;
       saveToStorage();
+      if(tags){ TAGS = tags; saveTagsToStorage(); }
+      if(!Array.isArray(data) && data.rules){ DAY_RULES = data.rules; saveRulesToStorage(); }
+      rebuildTagUI();
       plan = [];
       document.getElementById('plan-section').classList.add('hidden');
       document.getElementById('reset-btn').style.display='none';
       if(dbVisible) renderDB();
-      alert(`✓ Imported ${R.length} recipes.`);
+      alert(`✓ Imported ${R.length} recipes${tags?' and '+tags.length+' tags':''}.`);
     } catch(err){ alert('Could not read that file. Make sure it\'s a valid recipe export.'); }
   };
   reader.readAsText(file);
   e.target.value = '';
 }
 
+// ---- DAY RULES ----
+let DAY_RULES = {};
+const LS_RULES_KEY = 'dinner-planner-rules-v1';
+const TIME_RULE_OPTS = [
+  {value:'',            label:'Any time'},
+  {value:'easy',        label:'🟢 Weeknight-friendly (quick or slow cooker)'},
+  {value:'quick-only',  label:'⚡ Quick only'},
+  {value:'slow-cooker', label:'🥘 Slow Cooker only'},
+];
+
+function passesRules(r, rules){
+  if(!rules) return true;
+  const isSlow = r.tags.includes('slow-cooker');
+  if(rules.time){
+    if(rules.time==='easy'      && r.time!=='quick' && !isSlow) return false;
+    if(rules.time==='quick-only'&& r.time!=='quick')             return false;
+    if(rules.time==='slow-cooker'&& !isSlow)                     return false;
+  }
+  if(rules.tags && rules.tags.length){
+    for(const t of rules.tags) if(!r.tags.includes(t)) return false;
+  }
+  return true;
+}
+
+function hasRules(day){
+  const r = DAY_RULES[day];
+  return r && (r.time || (r.tags && r.tags.length>0));
+}
+
+function ruleSummary(day){
+  const r = DAY_RULES[day]; if(!r) return '';
+  const parts=[];
+  if(r.time){ const o=TIME_RULE_OPTS.find(x=>x.value===r.time); if(o) parts.push(o.label); }
+  if(r.tags) r.tags.forEach(tid=>{ const t=TAGS.find(x=>x.id===tid); if(t) parts.push((t.emoji?t.emoji+' ':'')+t.label+' required'); });
+  return parts.join(' · ');
+}
+
+function saveRulesToStorage(){ try{ localStorage.setItem(LS_RULES_KEY, JSON.stringify(DAY_RULES)); }catch(e){} }
+function loadRulesFromStorage(){
+  try{ const s=localStorage.getItem(LS_RULES_KEY); if(s) DAY_RULES=JSON.parse(s); }catch(e){}
+}
+
+function openRulesModal(){ renderRulesManager(); document.getElementById('rules-modal').classList.add('open'); }
+function closeRulesModal(){ document.getElementById('rules-modal').classList.remove('open'); }
+function bgRulesClick(e){ if(e.target===document.getElementById('rules-modal')) closeRulesModal(); }
+
+function renderRulesManager(){
+  document.getElementById('rules-list').innerHTML = DAYS.map(day=>{
+    const rule = DAY_RULES[day]||{time:'',tags:[]};
+    const active = hasRules(day);
+    const tagPills = TAGS.map(t=>{
+      const on = rule.tags && rule.tags.includes(t.id);
+      return `<span class="rule-tag-pill${on?' on':''}" onclick="toggleRuleTag('${day}','${t.id}')">${t.emoji?t.emoji+' ':''}${t.label}</span>`;
+    }).join('');
+    return `<div class="rule-row">
+      <div class="rule-day-name${active?' has-rule':''}">${day}</div>
+      <div class="rule-controls">
+        <select class="rule-time-sel${rule.time?' constrained':''}" onchange="setRuleTime('${day}',this.value)">
+          ${TIME_RULE_OPTS.map(o=>`<option value="${o.value}"${o.value===rule.time?' selected':''}>${o.label}</option>`).join('')}
+        </select>
+        <div class="rule-tag-pills">${tagPills}</div>
+        ${active?`<button class="rule-clear" onclick="clearRule('${day}')">✕ Clear rules for ${day}</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setRuleTime(day, value){
+  if(!DAY_RULES[day]) DAY_RULES[day]={time:'',tags:[]};
+  DAY_RULES[day].time=value;
+  saveRulesToStorage(); renderRulesManager();
+  if(plan.length) renderCards();
+}
+
+function toggleRuleTag(day, tagId){
+  if(!DAY_RULES[day]) DAY_RULES[day]={time:'',tags:[]};
+  if(!DAY_RULES[day].tags) DAY_RULES[day].tags=[];
+  const idx=DAY_RULES[day].tags.indexOf(tagId);
+  if(idx>-1) DAY_RULES[day].tags.splice(idx,1); else DAY_RULES[day].tags.push(tagId);
+  saveRulesToStorage(); renderRulesManager();
+  if(plan.length) renderCards();
+}
+
+function clearRule(day){
+  delete DAY_RULES[day];
+  saveRulesToStorage(); renderRulesManager();
+  if(plan.length) renderCards();
+}
+
 // ---- STATE ----
 let numMeals = 4;
 let plan = [];
 let swappingIdx = null;
+let swapShowAll = false;
+let modalMode = 'swap'; // 'swap' | 'side' | 'dessert'
+let showExtras = false;
+
+// ---- SIDES & DESSERTS ----
+function toggleExtras(){
+  showExtras = !showExtras;
+  document.getElementById('extras-bar').classList.toggle('hidden', !showExtras);
+  document.getElementById('extras-toggle').textContent = showExtras ? '🥗 Hide Sides & Desserts' : '🥗 Add Sides & Desserts';
+  if(plan.length) renderCards();
+}
+
+function suggestSide(i){
+  const pool = R.filter(r=>r.tags.includes('side'));
+  if(!pool.length){ alert('No recipes tagged as sides yet — add some via All Recipes!'); return; }
+  const best = pool.reduce((b,r)=>scoreSet([plan[i].r,r])>scoreSet([plan[i].r,b])?r:b, pool[0]);
+  plan[i]={...plan[i], side:best}; renderAll();
+}
+
+function suggestDessert(i){
+  const pool = R.filter(r=>r.tags.includes('dessert'));
+  if(!pool.length){ alert('No recipes tagged as desserts yet — add some via All Recipes!'); return; }
+  plan[i]={...plan[i], dessert:pool[Math.floor(Math.random()*pool.length)]}; renderAll();
+}
+
+function suggestAllSides(){
+  const pool = R.filter(r=>r.tags.includes('side'));
+  if(!pool.length){ alert('No recipes tagged as sides yet.'); return; }
+  plan.forEach((_,i)=>{ const best=pool.reduce((b,r)=>scoreSet([plan[i].r,r])>scoreSet([plan[i].r,b])?r:b,pool[0]); plan[i]={...plan[i],side:best}; });
+  renderAll();
+}
+
+function suggestAllDesserts(){
+  const pool = R.filter(r=>r.tags.includes('dessert'));
+  if(!pool.length){ alert('No recipes tagged as desserts yet.'); return; }
+  // shuffle so each day gets variety
+  const shuffled = [...pool].sort(()=>Math.random()-.5);
+  plan.forEach((_,i)=>{ plan[i]={...plan[i],dessert:shuffled[i%shuffled.length]}; });
+  renderAll();
+}
+
+function clearSide(i){ plan[i]={...plan[i],side:undefined}; renderAll(); }
+function clearDessert(i){ plan[i]={...plan[i],dessert:undefined}; renderAll(); }
+
+function clearAllExtras(){
+  plan=plan.map(p=>({...p,side:undefined,dessert:undefined})); renderAll();
+}
+
+function openSidePicker(i){ swappingIdx=i; swapShowAll=false; modalMode='side'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
+function openDessertPicker(i){ swappingIdx=i; swapShowAll=false; modalMode='dessert'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
 
 // ---- ALGORITHM ----
 function scoreSet(recipes) {
@@ -559,26 +901,57 @@ function scoreSet(recipes) {
 }
 
 function suggest(n) {
-  const pool = [...R];
-  const sel = [];
-  let bi=-1,bj=-1,bs=-1;
-  for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){
-    const s=scoreSet([pool[i],pool[j]]);
-    if(s>bs){bs=s;bi=i;bj=j;}
+  const days = DAYS.slice(0, n);
+  const result = [];
+  const used = new Set();
+  const isMain = r => !r.tags.includes('side') && !r.tags.includes('dessert');
+  const fp = (rules) => R.filter(r => !used.has(r.id) && isMain(r) && passesRules(r, rules||null));
+  const bestGreedy = (pool, existing) => {
+    let best=pool[0], bs=-1;
+    for(const r of pool){ const s=scoreSet([...existing,r]); if(s>bs){bs=s;best=r;} }
+    return best;
+  };
+
+  // Phase 1: fill constrained days first (so ingredient overlap is seeded around them)
+  for(const day of days.filter(d=>hasRules(d))){
+    let pool = fp(DAY_RULES[day]);
+    if(!pool.length) pool = fp(null); // fallback: ignore rules if no valid recipe
+    if(!pool.length) break;
+    const best = bestGreedy(pool, result.map(p=>p.r));
+    result.push({r:best, day}); used.add(best.id);
   }
-  sel.push(pool[bi],pool[bj]);
-  pool.splice(bj,1); pool.splice(bi,1);
-  while(sel.length<n&&pool.length>0){
-    let bi2=0,bs2=-1;
-    for(let i=0;i<pool.length;i++){const s=scoreSet([...sel,pool[i]]);if(s>bs2){bs2=s;bi2=i;}}
-    sel.push(pool[bi2]); pool.splice(bi2,1);
+
+  // Phase 2: fill free days, preserving best-pair seeding when starting cold
+  const freeDays = days.filter(d=>!hasRules(d));
+  if(result.length===0 && freeDays.length>=2){
+    const pool=fp(null);
+    let bi=0,bj=1,bs=-1;
+    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){
+      const s=scoreSet([pool[i],pool[j]]); if(s>bs){bs=s;bi=i;bj=j;}
+    }
+    result.push({r:pool[bi],day:freeDays[0]},{r:pool[bj],day:freeDays[1]});
+    used.add(pool[bi].id); used.add(pool[bj].id);
+    for(const day of freeDays.slice(2)){
+      const p=fp(null); if(!p.length) break;
+      const best=bestGreedy(p, result.map(x=>x.r));
+      result.push({r:best,day}); used.add(best.id);
+    }
+  } else {
+    for(const day of freeDays){
+      const pool=fp(null); if(!pool.length) break;
+      const best=bestGreedy(pool, result.map(x=>x.r));
+      result.push({r:best,day}); used.add(best.id);
+    }
   }
-  return sel.map((r,i)=>({r,day:DAYS[i]||DAYS[i%7]}));
+
+  return result;
 }
+
+function allPlanRecipes(plan){ return plan.flatMap(p=>[p.r,p.side,p.dessert].filter(Boolean)); }
 
 function getShared(plan){
   const m={};
-  for(const{r}of plan) for(const i of r.ings) if(!i.p){
+  for(const r of allPlanRecipes(plan)) for(const i of r.ings) if(!i.p){
     if(!m[i.n])m[i.n]=[];
     if(!m[i.n].includes(r.name))m[i.n].push(r.name);
   }
@@ -588,7 +961,7 @@ function getShared(plan){
 function getGrocery(plan){
   const shared=new Set(getShared(plan).map(([n])=>n));
   const byC={}, pcheck=new Set(), seen=new Set();
-  for(const{r}of plan) for(const i of r.ings){
+  for(const r of allPlanRecipes(plan)) for(const i of r.ings){
     if(i.p){pcheck.add(i.n);continue;}
     if(!seen.has(i.n)){
       seen.add(i.n);
@@ -601,7 +974,8 @@ function getGrocery(plan){
 }
 
 // ---- RENDER ----
-function timeTag(t){
+function timeTag(t, tags=[]){
+  if(tags.includes('slow-cooker'))return'<span class="tag ts">🥘 Slow Cooker</span>';
   if(t==='quick')return'<span class="tag tq">🟢 Quick</span>';
   if(t==='moderate')return'<span class="tag tm">🟡 Moderate</span>';
   return'<span class="tag tw">🔴 Weekend</span>';
@@ -610,15 +984,13 @@ function timeTag(t){
 function renderCards(){
   document.getElementById('plan-grid').innerHTML=plan.map(({r,day},i)=>`
     <div class="meal-card">
-      <div class="card-day">📅 ${day}</div>
+      <div class="card-day">📅 ${day}${hasRules(day)?` <span style="font-size:.62rem;background:var(--accent-light);color:var(--accent);padding:.08rem .35rem;border-radius:8px;font-weight:700" title="${ruleSummary(day)}">Rules set</span>`:''}</div>
+      ${(()=>{const rules=DAY_RULES[day];return rules&&!passesRules(r,rules)?`<div class="card-violation">⚠ Doesn't match ${day}'s rules</div>`:''})()}
       <div class="card-name">${r.name}</div>
       <div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>
       <div class="card-tags">
-        ${timeTag(r.time)}
-        ${r.tags.includes('daughter-approved')?'<span class="tag td">⭐ Kid-friendly</span>':''}
-        ${r.tags.includes('fiber')?'<span class="tag tf">🥗 Fiber</span>':''}
-        ${r.tags.includes('healthy-fats')?'<span class="tag ta">🥑 Fats</span>':''}
-        ${r.tags.includes('vegetarian')?'<span class="tag tv">🌿 Veg</span>':''}
+        ${timeTag(r.time,r.tags)}
+        ${renderTagChips(r.tags)}
       </div>
       ${r.note?`<div class="card-note">${r.note}</div>`:''}
       <div class="card-foot">
@@ -627,6 +999,20 @@ function renderCards(){
         </select>
         <button class="btn-swap" onclick="openSwap(${i})">Swap ↔</button>
       </div>
+      ${showExtras?`<div class="card-extras">
+        <div class="extra-row">
+          <span class="extra-label">🥗 Side</span>
+          ${plan[i].side
+            ?`<div class="extra-filled"><span class="extra-name" title="${plan[i].side.name}">${plan[i].side.name}</span><button class="btn-extra" onclick="openSidePicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearSide(${i})" title="Remove">✕</button></div>`
+            :`<button class="btn-extra" onclick="suggestSide(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openSidePicker(${i})">+ Pick</button>`}
+        </div>
+        <div class="extra-row">
+          <span class="extra-label">🍰 Dessert</span>
+          ${plan[i].dessert
+            ?`<div class="extra-filled"><span class="extra-name" title="${plan[i].dessert.name}">${plan[i].dessert.name}</span><button class="btn-extra" onclick="openDessertPicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearDessert(${i})" title="Remove">✕</button></div>`
+            :`<button class="btn-extra" onclick="suggestDessert(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openDessertPicker(${i})">+ Pick</button>`}
+        </div>
+      </div>`:''}
     </div>`).join('');
 }
 
@@ -671,29 +1057,66 @@ function renderAll(){
 function renderModal(){
   const q=document.getElementById('msearch').value.toLowerCase();
   const inPlan=new Set(plan.map(p=>p.r.id));
-  const opts=R.filter(r=>!inPlan.has(r.id)&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+  const day=swappingIdx!==null?plan[swappingIdx].day:null;
+  const noteEl=document.getElementById('modal-note');
+  let opts, title;
+
+  if(modalMode==='side'){
+    title='Choose a side dish';
+    opts=R.filter(r=>r.tags.includes('side')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    noteEl.style.display='none';
+  } else if(modalMode==='dessert'){
+    title='Choose a dessert';
+    opts=R.filter(r=>r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    noteEl.style.display='none';
+  } else {
+    title='Choose a recipe';
+    const rules=day?DAY_RULES[day]:null;
+    const constrained=rules&&(rules.time||(rules.tags&&rules.tags.length));
+    opts=R.filter(r=>!inPlan.has(r.id)&&!r.tags.includes('side')&&!r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    if(constrained&&!swapShowAll){
+      opts=opts.filter(r=>passesRules(r,rules));
+      noteEl.style.display='';
+      noteEl.innerHTML=`Filtered to match <strong>${day}</strong>'s rules — <a onclick="swapShowAll=true;renderModal()">show all recipes</a>`;
+    } else if(constrained&&swapShowAll){
+      noteEl.style.display='';
+      noteEl.innerHTML=`Showing all recipes — <a onclick="swapShowAll=false;renderModal()">filter by ${day}'s rules</a>`;
+    } else { noteEl.style.display='none'; }
+  }
+
+  document.getElementById('modal-title').textContent=title;
   document.getElementById('modal-body').innerHTML=opts.length
     ?opts.map(r=>`<div class="r-opt" onclick="doSwap(${r.id})">
         <div class="r-opt-name">${r.name}</div>
         <div class="r-opt-src">${r.src}${r.page?' · '+r.page:''}</div>
-        <div style="margin-top:.3rem">${timeTag(r.time)}</div>
+        <div style="margin-top:.3rem">${timeTag(r.time,r.tags)}</div>
       </div>`).join('')
-    :'<div style="padding:1rem;color:var(--muted)">No recipes found.</div>';
+    :`<div style="padding:1rem;color:var(--muted)">No ${modalMode==='side'?'sides':modalMode==='dessert'?'desserts':'recipes'} found${modalMode==='swap'?'. <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="swapShowAll=true;renderModal()">Show all</span>':''}.</div>`;
 }
 
-function openSwap(i){swappingIdx=i;document.getElementById('msearch').value='';renderModal();document.getElementById('modal').classList.add('open');}
-function closeModal(){document.getElementById('modal').classList.remove('open');swappingIdx=null;}
-function doSwap(id){if(swappingIdx===null)return;const r=R.find(x=>x.id===id);if(r){plan[swappingIdx]={...plan[swappingIdx],r};closeModal();renderAll();}}
+function openSwap(i){swappingIdx=i;swapShowAll=false;modalMode='swap';document.getElementById('msearch').value='';renderModal();document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');swappingIdx=null;modalMode='swap';}
+function doSwap(id){
+  if(swappingIdx===null)return;
+  const r=R.find(x=>x.id===id); if(!r)return;
+  if(modalMode==='side')       plan[swappingIdx]={...plan[swappingIdx],side:r};
+  else if(modalMode==='dessert') plan[swappingIdx]={...plan[swappingIdx],dessert:r};
+  else                           plan[swappingIdx]={...plan[swappingIdx],r};
+  closeModal(); renderAll();
+}
 function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();}
 
 // ---- CONTROLS ----
 function setDay(i,d){plan[i].day=d;}
-function handleSuggest(){plan=suggest(numMeals);renderAll();}
+function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));renderAll();}
 function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
 // ---- INIT ----
-loadFromStorage(); // load any saved recipes over the built-in defaults
+loadTagsFromStorage();
+loadRulesFromStorage();
+loadFromStorage();
+rebuildTagUI();
 document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
 </script>
 </body>
