@@ -171,6 +171,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .tm-emoji:focus{border-color:var(--accent)}
 .tm-new-label{flex:1;padding:.4rem .65rem;border:1px solid var(--border);border-radius:5px;font-size:.84rem;font-family:inherit;outline:none}
 .tm-new-label:focus{border-color:var(--accent)}
+.tm-emoji-picker{display:flex;flex-wrap:wrap;gap:.3rem;padding:.6rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.75rem}
+.tm-ep-btn{background:none;border:1.5px solid transparent;border-radius:6px;font-size:1.15rem;padding:.2rem .3rem;cursor:pointer;transition:all .1s;line-height:1}
+.tm-ep-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.tm-ep-btn.selected{border-color:var(--accent);background:var(--accent-light)}
 @media print{
   header{display:none}
   .setup,.btn-swap,.modal-bg{display:none!important}
@@ -405,6 +409,8 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <div class="modal-body">
       <p style="font-size:.8rem;color:var(--muted);margin-bottom:.85rem">Tags appear on recipe cards and as filters in the database. Deleting a tag removes it from all recipes.</p>
       <div class="tm-list" id="tm-list"></div>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem">Pick an icon:</p>
+      <div class="tm-emoji-picker" id="tm-emoji-picker"></div>
       <div class="tm-add-row">
         <input class="tm-emoji" id="tm-emoji" type="text" placeholder="🍜" maxlength="4">
         <input class="tm-new-label" id="tm-label" type="text" placeholder="New tag name (e.g. Meal prep)" onkeydown="if(event.key==='Enter')addTag()">
@@ -490,8 +496,21 @@ function rebuildTagUI(){
 function saveTagsToStorage(){ saveToStorage(); }
 
 // ---- TAG MANAGER ----
+const TAG_EMOJI_OPTIONS = ['🥗','🍝','🥘','🍲','🥩','🐟','🍗','🥦','🧀','🌮','🍕','🥚','🥑','🫙','🍰','🍪','🥕','🌽','🍅','🧄','🫚','🌶️','🍋','🥬','🍄','🥜','🌾','🧂','⚡','💪','👧','🏠','🎉','❤️','⭐','🥣','🫐','🍎','🧁','🥐','🍞','🫕','🌿','🍃'];
+
+function buildEmojiPicker(){
+  const picker = document.getElementById('tm-emoji-picker');
+  picker.innerHTML = TAG_EMOJI_OPTIONS.map(e=>`<button class="tm-ep-btn" onclick="selectTagEmoji('${e}')" title="${e}">${e}</button>`).join('');
+}
+
+function selectTagEmoji(e){
+  document.getElementById('tm-emoji').value = e;
+  document.querySelectorAll('.tm-ep-btn').forEach(b=>b.classList.toggle('selected', b.textContent===e));
+}
+
 function openManageTagsModal(){
   renderTagsManager();
+  buildEmojiPicker();
   document.getElementById('tm-emoji').value='';
   document.getElementById('tm-label').value='';
   document.getElementById('tm-err').textContent='';
