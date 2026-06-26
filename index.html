@@ -85,6 +85,20 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .form-select{background:var(--bg);cursor:pointer}
 .ing-list{margin-top:.45rem}
 .ing-row{display:flex;gap:.45rem;align-items:center;margin-bottom:.4rem}
+.ing-amt{width:72px;padding:.3rem .4rem;border:1px solid var(--border);border-radius:5px;font-size:.8rem;font-family:inherit;outline:none}
+.ing-amt:focus{border-color:var(--accent)}
+/* Recipe detail modal */
+.rd-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .15s}
+.rd-modal-bg.open{opacity:1;pointer-events:all}
+.rd-modal{background:#fff;border-radius:12px;width:100%;max-width:580px;max-height:82vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);padding:1.5rem}
+.rd-name{font-size:1.15rem;font-weight:700;margin-bottom:.25rem}
+.rd-source{font-size:.8rem;color:var(--muted);margin-bottom:.6rem}
+.rd-section{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.9rem 0 .4rem}
+.rd-ing-row{display:flex;gap:.5rem;font-size:.85rem;padding:.2rem 0;border-bottom:1px solid var(--bg)}
+.rd-ing-amt{color:var(--accent);font-weight:600;min-width:80px;flex-shrink:0}
+.rd-instructions{font-size:.87rem;line-height:1.65;white-space:pre-wrap;color:var(--text)}
+.card-name{cursor:pointer;text-decoration:none}
+.card-name:hover{color:var(--accent)}
 .ing-name{flex:1;padding:.35rem .55rem;border:1px solid var(--border);border-radius:4px;font-size:.82rem;font-family:inherit;outline:none}
 .ing-name:focus{border-color:var(--accent)}
 .ing-cat{padding:.35rem .4rem;border:1px solid var(--border);border-radius:4px;font-size:.78rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
@@ -372,8 +386,15 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       </div>
       <div class="form-row">
         <label class="form-label">Ingredients</label>
+        <div style="display:flex;gap:.45rem;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;padding:0 .1rem">
+          <span style="flex:1">Name</span><span style="width:72px">Amount</span><span style="width:80px">Category</span><span style="width:64px">Pantry?</span><span style="width:20px"></span>
+        </div>
         <div class="ing-list" id="af-ings"></div>
         <button class="btn-ghost" style="margin-top:.4rem" onclick="addIngRow()">+ Add ingredient</button>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Instructions <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <textarea class="form-textarea" id="af-instructions" placeholder="Step 1: Preheat oven to 400°F&#10;Step 2: ..." style="min-height:100px"></textarea>
       </div>
     </div>
     <div class="modal-foot">
@@ -434,6 +455,27 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     </div>
     <div id="modal-note" style="display:none" class="modal-note"></div>
     <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Recipe Detail Modal -->
+<div class="rd-modal-bg" id="rd-modal" onclick="if(event.target===this)closeRecipeDetail()">
+  <div class="rd-modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+      <div>
+        <div class="rd-name" id="rd-name"></div>
+        <div class="rd-source" id="rd-source"></div>
+      </div>
+      <button class="modal-x" onclick="closeRecipeDetail()" style="flex-shrink:0">✕</button>
+    </div>
+    <div id="rd-tags" style="margin-bottom:.4rem"></div>
+    <div id="rd-note" style="font-size:.82rem;color:var(--muted);font-style:italic;margin-bottom:.4rem"></div>
+    <div class="rd-section">Ingredients</div>
+    <div id="rd-ings"></div>
+    <div id="rd-instructions-section" style="display:none">
+      <div class="rd-section">Instructions</div>
+      <div class="rd-instructions" id="rd-instructions"></div>
+    </div>
   </div>
 </div>
 
@@ -766,12 +808,13 @@ let nextId = R.length + 1;
 let editingId = null; // null = adding new, number = editing existing
 const CAT_OPTS = ['produce','protein','dairy','pantry','specialty','frozen'];
 
-function addIngRow(name='',cat='produce',isPantry=false){
+function addIngRow(name='',cat='produce',isPantry=false,amount=''){
   const list = document.getElementById('af-ings');
   const row = document.createElement('div');
   row.className = 'ing-row';
   row.innerHTML = `
-    <input class="ing-name" type="text" placeholder="Ingredient name" value="${name.replace(/"/g,'&quot;')}">
+    <input class="ing-name" type="text" placeholder="Ingredient name" value="${name.replace(/"/g,'&quot;')}" style="flex:1">
+    <input class="ing-amt" type="text" placeholder="e.g. 2 cups" value="${amount.replace(/"/g,'&quot;')}">
     <select class="ing-cat">${CAT_OPTS.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('')}</select>
     <label class="ing-p" title="Check Pantry First — item is likely already in your pantry"><input type="checkbox"${isPantry?' checked':''}> pantry?</label>
     <button class="ing-del" onclick="this.parentNode.remove()" title="Remove">✕</button>`;
@@ -787,6 +830,7 @@ function openAddModal(){
   document.getElementById('af-page').value='';
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
+  document.getElementById('af-instructions').value='';
   document.getElementById('af-err').textContent='';
   document.querySelectorAll('#af-seasons input').forEach(cb=>cb.checked=false);
   rebuildTagUI(); // render checkboxes fresh with no checked state
@@ -807,6 +851,7 @@ function openEditModal(id){
   document.getElementById('af-page').value = r.page||'';
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
+  document.getElementById('af-instructions').value = r.instructions||'';
   document.getElementById('af-err').textContent = '';
   // seasons
   document.querySelectorAll('#af-seasons input').forEach(cb=>{ cb.checked=(r.seasons||[]).includes(cb.value); });
@@ -814,7 +859,7 @@ function openEditModal(id){
   document.getElementById('af-tags-grid').innerHTML = TAGS.map(t=>`<label class="tag-chk"><input type="checkbox" value="${t.id}"${r.tags.includes(t.id)?' checked':''}>${t.emoji?t.emoji+' ':''}${t.label}</label>`).join('');
   const list=document.getElementById('af-ings');
   list.innerHTML='';
-  (r.ings.length ? r.ings : [{}]).forEach(i=>addIngRow(i.n||'',i.c||'produce',!!i.p));
+  (r.ings.length ? r.ings : [{}]).forEach(i=>addIngRow(i.n||'',i.c||'produce',!!i.p,i.a||''));
   document.getElementById('add-modal').classList.add('open');
   setTimeout(()=>document.getElementById('af-name').focus(),80);
 }
@@ -822,12 +867,33 @@ function openEditModal(id){
 function closeAddModal(){document.getElementById('add-modal').classList.remove('open');}
 function bgAddClick(e){if(e.target===document.getElementById('add-modal'))closeAddModal();}
 
+function openRecipeDetail(id){
+  const r = R.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('rd-name').textContent = r.name;
+  document.getElementById('rd-source').textContent = r.src + (r.page ? ' · ' + r.page : '');
+  document.getElementById('rd-tags').innerHTML = `${timeTag(r.time,r.tags)}${renderTagChips(r.tags)}`;
+  document.getElementById('rd-note').textContent = r.note || '';
+  document.getElementById('rd-note').style.display = r.note ? '' : 'none';
+  document.getElementById('rd-ings').innerHTML = r.ings.map(i=>`
+    <div class="rd-ing-row${i.p?' rd-pantry':''}">
+      <span class="rd-ing-amt">${i.a||''}</span>
+      <span${i.p?' style="color:var(--muted)"':''}>${i.n}${i.p?' <span style="font-size:.72rem">(pantry)</span>':''}</span>
+    </div>`).join('');
+  const hasInstructions = r.instructions && r.instructions.trim();
+  document.getElementById('rd-instructions-section').style.display = hasInstructions ? '' : 'none';
+  document.getElementById('rd-instructions').textContent = r.instructions || '';
+  document.getElementById('rd-modal').classList.add('open');
+}
+function closeRecipeDetail(){ document.getElementById('rd-modal').classList.remove('open'); }
+
 function saveRecipe(){
   const name=document.getElementById('af-name').value.trim();
   if(!name){document.getElementById('af-err').textContent='Recipe name is required.';return;}
   const rows=[...document.getElementById('af-ings').querySelectorAll('.ing-row')];
   const ings=rows.map(row=>({
     n:row.querySelector('.ing-name').value.trim(),
+    a:row.querySelector('.ing-amt').value.trim()||undefined,
     c:row.querySelector('.ing-cat').value,
     p:row.querySelector('input[type=checkbox]').checked?1:undefined
   })).filter(i=>i.n);
@@ -841,6 +907,7 @@ function saveRecipe(){
     tags,
     seasons,
     note:document.getElementById('af-note').value.trim(),
+    instructions:document.getElementById('af-instructions').value.trim()||undefined,
     ings
   };
   if(editingId !== null){
@@ -1235,7 +1302,7 @@ function getGrocery(plan){
     if(!seen.has(i.n)){
       seen.add(i.n);
       if(!byC[i.c])byC[i.c]=[];
-      byC[i.c].push({n:i.n,sh:shared.has(i.n)});
+      byC[i.c].push({n:i.n,a:i.a||'',sh:shared.has(i.n)});
     }
   }
   for(const c in byC) byC[c].sort((a,b)=>(b.sh-a.sh)||a.n.localeCompare(b.n));
@@ -1257,7 +1324,7 @@ function renderCards(){
       ${(()=>{const rules=DAY_RULES[day];return rules&&!passesRules(r,rules)?`<div class="card-violation">⚠ Doesn't match ${day}'s rules</div>`:''})()}
       ${currentSeason&&r.seasons?.length?`<div class="${r.seasons.includes(currentSeason)?'in-season-note':''}">
         ${r.seasons.includes(currentSeason)?'✓ In season — ':''}${seasonBadges(r.seasons)}</div>`:''}
-      <div class="card-name">${r.name}</div>
+      <div class="card-name" onclick="openRecipeDetail(${r.id})" title="View full recipe">${r.name}</div>
       <div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>
       <div class="card-tags">
         ${timeTag(r.time,r.tags)}
@@ -1321,7 +1388,7 @@ function renderGrocery(){
         <div class="g-item${it.sh?' shared':''}">
           <input type="checkbox">
           ${it.sh?'<span class="s-dot"></span>':'<span class="gap-dot"></span>'}
-          <span>${it.n}</span>
+          <span>${it.n}${it.a?` <span style="font-size:.75rem;color:var(--muted);font-weight:400">${it.a}</span>`:''}</span>
         </div>`).join('')}
     </div>`).join('');
   const pantry=pcheck.length?`
