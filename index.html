@@ -195,6 +195,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .auth-toggle{text-align:center;margin-top:1rem;font-size:.83rem;color:var(--muted)}
 .auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:underline}
 #user-info{font-size:.8rem;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:.6rem}
+#starter-banner{background:var(--accent-light);border:1.5px solid var(--sand);border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+#starter-banner p{font-size:.9rem;color:var(--text);margin:0}
+#starter-banner p span{color:var(--muted);font-size:.82rem;display:block;margin-top:.2rem}
+#starter-banner.hidden{display:none}
 </style>
 </head>
 <body>
@@ -236,6 +240,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 </header>
 
 <main>
+  <div id="starter-banner" class="hidden">
+    <p>Your recipe book is empty. <span>Add your own recipes, or start with our curated collection of 62 dinners, sides & desserts.</span></p>
+    <button class="btn btn-accent" onclick="loadStarterRecipes()">Load starter recipes</button>
+  </div>
   <div class="setup">
     <label>How many dinners?</label>
     <div class="num-picker" id="num-picker"></div>
@@ -720,6 +728,7 @@ function deleteRecipe(id){
 }
 
 // ---- ADD RECIPE ----
+const SEED_RECIPES = R.map(r=>({...r})); // snapshot before any user data overwrites R
 let nextId = R.length + 1;
 let editingId = null; // null = adding new, number = editing existing
 const CAT_OPTS = ['produce','protein','dairy','pantry','specialty','frozen'];
@@ -866,10 +875,21 @@ async function loadUserData(){
     if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
     if(data.tags?.length) TAGS=data.tags;
     if(data.rules) DAY_RULES=data.rules;
+    if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
   } else {
     R.length=0; nextId=1; // blank slate for new users
     await _doSave();
+    document.getElementById('starter-banner').classList.remove('hidden');
   }
+}
+
+async function loadStarterRecipes(){
+  R.length=0;
+  SEED_RECIPES.forEach(r=>R.push({...r}));
+  nextId=Math.max(...R.map(r=>r.id),0)+1;
+  saveToStorage();
+  rebuildTagUI();
+  document.getElementById('starter-banner').classList.add('hidden');
 }
 
 sb.auth.onAuthStateChange(async(event,session)=>{
