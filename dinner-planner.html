@@ -924,35 +924,6 @@ function exportRecipes(){
   URL.revokeObjectURL(a.href);
 }
 
-function importRecipes(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try{
-      const data = JSON.parse(ev.target.result);
-      // support both old format (array) and new format ({recipes, tags})
-      const recipes = Array.isArray(data) ? data : data.recipes;
-      const tags = Array.isArray(data) ? null : data.tags;
-      if(!Array.isArray(recipes)) throw new Error();
-      if(!confirm(`Import ${recipes.length} recipes${tags?` and ${tags.length} tags`:''}? This will replace your current database.`)) return;
-      R.length = 0;
-      recipes.forEach(r=>R.push(r));
-      nextId = Math.max(...R.map(r=>r.id), 0) + 1;
-      saveToStorage();
-      if(tags){ TAGS = tags; saveTagsToStorage(); }
-      if(!Array.isArray(data) && data.rules){ DAY_RULES = data.rules; saveRulesToStorage(); }
-      rebuildTagUI();
-      plan = [];
-      document.getElementById('plan-section').classList.add('hidden');
-      document.getElementById('reset-btn').style.display='none';
-      if(dbVisible) renderDB();
-      alert(`✓ Imported ${R.length} recipes${tags?' and '+tags.length+' tags':''}.`);
-    } catch(err){ alert('Could not read that file. Make sure it\'s a valid recipe export.'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-}
 
 // ---- DAY RULES ----
 let DAY_RULES = {};
