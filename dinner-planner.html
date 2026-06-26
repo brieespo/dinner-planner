@@ -1286,17 +1286,17 @@ function renderModal(){
 
   if(modalMode==='side'){
     title='Choose a side dish';
-    opts=R.filter(r=>r.tags.includes('side')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    opts=R.filter(r=>r.tags.includes('side')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     noteEl.style.display='none';
   } else if(modalMode==='dessert'){
     title='Choose a dessert';
-    opts=R.filter(r=>r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    opts=R.filter(r=>r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     noteEl.style.display='none';
   } else {
     title='Choose a recipe';
     const rules=day?DAY_RULES[day]:null;
     const constrained=rules&&(rules.time||(rules.tags&&rules.tags.length));
-    opts=R.filter(r=>!inPlan.has(r.id)&&!r.tags.includes('side')&&!r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)));
+    opts=R.filter(r=>!inPlan.has(r.id)&&!r.tags.includes('side')&&!r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     if(constrained&&!swapShowAll){
       opts=opts.filter(r=>passesRules(r,rules));
       noteEl.style.display='';
