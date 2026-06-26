@@ -844,6 +844,18 @@ function toggleAuthMode(){
   document.getElementById('auth-err').className='auth-err';
 }
 
+async function handleAuthSession(session){
+  if(!session) return;
+  _currentUser = session.user;
+  await loadUserData(session.user);
+  rebuildTagUI();
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('user-info').style.display='flex';
+  document.getElementById('user-email').textContent=session.user.email;
+  document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
+  document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+}
+
 async function authSubmit(){
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-password').value;
@@ -854,7 +866,8 @@ async function authSubmit(){
     ? await sb.auth.signInWithPassword({email,password:pass})
     : await sb.auth.signUp({email,password:pass});
   if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
-  if(_authMode==='signup'&&!data.session){ errEl.textContent='✓ Check your email to confirm your account.'; errEl.className='auth-err ok'; }
+  if(_authMode==='signup'&&!data.session){ errEl.textContent='✓ Check your email to confirm your account.'; errEl.className='auth-err ok'; return; }
+  if(data.session) await handleAuthSession(data.session);
 }
 
 async function doSignOut(){ await sb.auth.signOut(); }
@@ -894,20 +907,8 @@ async function loadStarterRecipes(){
 }
 
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(session){
-    _currentUser = session.user;
-    await loadUserData(session.user);
-    rebuildTagUI();
-    document.getElementById('auth-overlay').classList.add('hidden');
-    document.getElementById('user-info').style.display='flex';
-    document.getElementById('user-email').textContent=session.user.email;
-    document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
-    document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
-  } else {
-    _currentUser = null;
-    document.getElementById('auth-overlay').classList.remove('hidden');
-    document.getElementById('user-info').style.display='none';
-  }
+  if(session && event==='SIGNED_IN') await handleAuthSession(session);
+  if(!session){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
 });
 
 function exportRecipes(){
