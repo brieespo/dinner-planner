@@ -860,25 +860,28 @@ async function authSubmit(){
 async function doSignOut(){ await sb.auth.signOut(); }
 
 let _saveTimer = null;
+let _currentUser = null;
 async function _doSave(){
-  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
-  await sb.from('user_data').upsert({user_id:user.id,recipes:R,tags:TAGS,rules:DAY_RULES,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  if(!_currentUser) return;
+  try{ await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:DAY_RULES,updated_at:new Date().toISOString()},{onConflict:'user_id'}); }catch(e){ console.error('save error',e); }
 }
 function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSave,600); }
 
-async function loadUserData(){
-  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
-  const {data} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
-  if(data){
-    if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
-    if(data.tags?.length) TAGS=data.tags;
-    if(data.rules) DAY_RULES=data.rules;
-    if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
-  } else {
-    R.length=0; nextId=1; // blank slate for new users
-    await _doSave();
-    document.getElementById('starter-banner').classList.remove('hidden');
-  }
+async function loadUserData(user){
+  try{
+    const {data,error} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
+    if(error){ console.error('loadUserData error:',error); return; }
+    if(data){
+      if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
+      if(data.tags?.length) TAGS=data.tags;
+      if(data.rules) DAY_RULES=data.rules;
+      if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
+    } else {
+      R.length=0; nextId=1;
+      await sb.from('user_data').upsert({user_id:user.id,recipes:[],tags:TAGS,rules:{},updated_at:new Date().toISOString()},{onConflict:'user_id'});
+      document.getElementById('starter-banner').classList.remove('hidden');
+    }
+  }catch(e){ console.error('loadUserData exception:',e); }
 }
 
 async function loadStarterRecipes(){
@@ -892,7 +895,8 @@ async function loadStarterRecipes(){
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session){
-    await loadUserData();
+    _currentUser = session.user;
+    await loadUserData(session.user);
     rebuildTagUI();
     document.getElementById('auth-overlay').classList.add('hidden');
     document.getElementById('user-info').style.display='flex';
@@ -900,6 +904,7 @@ sb.auth.onAuthStateChange(async(event,session)=>{
     document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
     document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
   } else {
+    _currentUser = null;
     document.getElementById('auth-overlay').classList.remove('hidden');
     document.getElementById('user-info').style.display='none';
   }
