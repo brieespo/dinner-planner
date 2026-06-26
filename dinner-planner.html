@@ -225,7 +225,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   </div>
 </div>
 <header>
-  <div><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
+  <div style="cursor:pointer" onclick="goHome()"><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
   <div class="print-hide" style="display:flex;gap:.6rem;align-items:center">
     <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
     <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
@@ -233,7 +233,6 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <button class="btn btn-outline" onclick="openRulesModal()">📋 Day Rules</button>
     <button class="btn btn-outline" onclick="openManageTagsModal()">🏷 Tags</button>
     <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
-    <label class="btn btn-outline" style="cursor:pointer" title="Restore recipes from a backup file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importRecipes(event)"></label>
     <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
     <div id="user-info" style="display:none"><span id="user-email"></span><button class="btn btn-outline" onclick="doSignOut()">Sign out</button></div>
   </div>
@@ -666,6 +665,11 @@ const R = [
 
 // ---- DATABASE VIEW ----
 let dbVisible = false;
+
+function goHome(){
+  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 function toggleDB(){
   dbVisible = !dbVisible;

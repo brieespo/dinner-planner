@@ -225,7 +225,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   </div>
 </div>
 <header>
-  <div><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
+  <div style="cursor:pointer" onclick="goHome()"><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
   <div class="print-hide" style="display:flex;gap:.6rem;align-items:center">
     <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
     <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
@@ -666,6 +666,11 @@ const R = [
 
 // ---- DATABASE VIEW ----
 let dbVisible = false;
+
+function goHome(){
+  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 function toggleDB(){
   dbVisible = !dbVisible;
