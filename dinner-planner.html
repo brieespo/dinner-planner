@@ -214,6 +214,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <label>Password</label>
       <input type="password" id="auth-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
     </div>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
+      <input type="checkbox" id="auth-remember" style="cursor:pointer">
+      <label for="auth-remember" style="font-size:.82rem;color:var(--muted);cursor:pointer">Remember me</label>
+    </div>
     <div class="auth-btn-row">
       <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
     </div>
@@ -863,15 +867,23 @@ async function handleAuthSession(session){
 async function authSubmit(){
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-password').value;
+  const remember = document.getElementById('auth-remember').checked;
   const errEl = document.getElementById('auth-err');
   errEl.textContent=''; errEl.className='auth-err';
   if(!email||!pass){ errEl.textContent='Please enter your email and password.'; errEl.className='auth-err err'; return; }
+  if(remember) localStorage.setItem('dp-remembered-email', email);
+  else localStorage.removeItem('dp-remembered-email');
   const {data,error} = _authMode==='signin'
     ? await sb.auth.signInWithPassword({email,password:pass})
     : await sb.auth.signUp({email,password:pass});
   if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
   if(_authMode==='signup'&&!data.session){ errEl.textContent='✓ Check your email to confirm your account.'; errEl.className='auth-err ok'; return; }
   if(data.session) await handleAuthSession(data.session);
+}
+
+function loadRememberedEmail(){
+  const saved = localStorage.getItem('dp-remembered-email');
+  if(saved){ document.getElementById('auth-email').value=saved; document.getElementById('auth-remember').checked=true; }
 }
 
 async function doSignOut(){ await sb.auth.signOut(); }
@@ -1103,9 +1115,13 @@ function suggest(n) {
     return seasonal.length >= 1 ? seasonal : all; // prefer seasonal, fall back if pool too small
   };
   const bestGreedy = (pool, existing) => {
-    let best=pool[0], bs=-1;
-    for(const r of pool){ const s=scoreSet([...existing,r]); if(s>bs){bs=s;best=r;} }
-    return best;
+    // shuffle pool first so ties break randomly
+    const shuffled = [...pool].sort(()=>Math.random()-.5);
+    let bs=-1;
+    for(const r of shuffled){ const s=scoreSet([...existing,r]); if(s>bs) bs=s; }
+    // pick randomly among all top-scoring options
+    const top = shuffled.filter(r=>scoreSet([...existing,r])>=bs);
+    return top[Math.floor(Math.random()*top.length)];
   };
 
   // Phase 1: fill constrained days first (so ingredient overlap is seeded around them)
@@ -1120,7 +1136,7 @@ function suggest(n) {
   // Phase 2: fill free days, preserving best-pair seeding when starting cold
   const freeDays = days.filter(d=>!hasRules(d));
   if(result.length===0 && freeDays.length>=2){
-    const pool=fp(null);
+    const pool=[...fp(null)].sort(()=>Math.random()-.5);
     let bi=0,bj=1,bs=-1;
     for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){
       const s=scoreSet([pool[i],pool[j]]); if(s>bs){bs=s;bi=i;bj=j;}
@@ -1312,6 +1328,7 @@ function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.class
 
 // ---- INIT ----
 rebuildTagUI(); // runs on default tags; rebuilt again after auth loads user data
+loadRememberedEmail();
 </script>
 </body>
 </html>
