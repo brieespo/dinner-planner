@@ -1115,13 +1115,10 @@ function suggest(n) {
     return seasonal.length >= 1 ? seasonal : all; // prefer seasonal, fall back if pool too small
   };
   const bestGreedy = (pool, existing) => {
-    // shuffle pool first so ties break randomly
-    const shuffled = [...pool].sort(()=>Math.random()-.5);
-    let bs=-1;
-    for(const r of shuffled){ const s=scoreSet([...existing,r]); if(s>bs) bs=s; }
-    // pick randomly among all top-scoring options
-    const top = shuffled.filter(r=>scoreSet([...existing,r])>=bs);
-    return top[Math.floor(Math.random()*top.length)];
+    // score all, then pick randomly from top 6 so results vary each time
+    const scored = pool.map(r=>({r, s:scoreSet([...existing,r])})).sort((a,b)=>b.s-a.s);
+    const topN = scored.slice(0, Math.min(6, scored.length));
+    return topN[Math.floor(Math.random()*topN.length)].r;
   };
 
   // Phase 1: fill constrained days first (so ingredient overlap is seeded around them)
@@ -1136,11 +1133,13 @@ function suggest(n) {
   // Phase 2: fill free days, preserving best-pair seeding when starting cold
   const freeDays = days.filter(d=>!hasRules(d));
   if(result.length===0 && freeDays.length>=2){
-    const pool=[...fp(null)].sort(()=>Math.random()-.5);
-    let bi=0,bj=1,bs=-1;
-    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){
-      const s=scoreSet([pool[i],pool[j]]); if(s>bs){bs=s;bi=i;bj=j;}
-    }
+    const pool=fp(null);
+    // score all pairs, pick randomly from top 10 pairs for variety
+    const pairs=[];
+    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++) pairs.push({i,j,s:scoreSet([pool[i],pool[j]])});
+    pairs.sort((a,b)=>b.s-a.s);
+    const pick=pairs[Math.floor(Math.random()*Math.min(10,pairs.length))];
+    const bi=pick.i, bj=pick.j;
     result.push({r:pool[bi],day:freeDays[0]},{r:pool[bj],day:freeDays[1]});
     used.add(pool[bi].id); used.add(pool[bj].id);
     for(const day of freeDays.slice(2)){
