@@ -1115,12 +1115,22 @@ function openSidePicker(i){ swappingIdx=i; swapShowAll=false; modalMode='side'; 
 function openDessertPicker(i){ swappingIdx=i; swapShowAll=false; modalMode='dessert'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
 
 // ---- ALGORITHM ----
+// Ingredients excluded from shared-ingredient display and scoring
+const SHARED_BLOCKLIST = new Set([
+  'butter','olive oil','salt','pepper','black pepper','kosher salt','garlic',
+  'onion','olive oil','vegetable oil','canola oil','water','sugar','flour',
+  'all-purpose flour','baking soda','baking powder','vanilla','eggs','egg',
+  'cauliflower','broccoli',
+]);
+
 function scoreSet(recipes) {
   const counts = {};
   for (const r of recipes) {
     const seen = new Set();
     for (const i of r.ings) {
-      if (!i.p && !seen.has(i.n)) { counts[i.n] = (counts[i.n]||0)+1; seen.add(i.n); }
+      if (!i.p && !seen.has(i.n) && !SHARED_BLOCKLIST.has(i.n.toLowerCase())) {
+        counts[i.n] = (counts[i.n]||0)+1; seen.add(i.n);
+      }
     }
   }
   return Object.values(counts).filter(v=>v>1).reduce((a,b)=>a+(b-1),0);
@@ -1184,7 +1194,7 @@ function allPlanRecipes(plan){ return plan.flatMap(p=>[p.r,p.side,p.dessert].fil
 
 function getShared(plan){
   const m={};
-  for(const r of allPlanRecipes(plan)) for(const i of r.ings) if(!i.p){
+  for(const r of allPlanRecipes(plan)) for(const i of r.ings) if(!i.p && !SHARED_BLOCKLIST.has(i.n.toLowerCase())){
     if(!m[i.n])m[i.n]=[];
     if(!m[i.n].includes(r.name))m[i.n].push(r.name);
   }
