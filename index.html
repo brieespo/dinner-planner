@@ -295,7 +295,11 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   <div id="plan-section" class="hidden">
     <div class="extras-header">
       <div class="section-title" style="margin-bottom:0">📅 This Week's Plan</div>
-      <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn-ghost" id="breakfast-toggle" onclick="toggleBreakfast()">🌅 Add Breakfast</button>
+        <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
+        <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+      </div>
     </div>
     <div id="extras-bar" class="hidden extras-bar">
       <button class="btn-ghost" onclick="suggestAllSides()">🎲 Suggest all sides</button>
@@ -1050,8 +1054,10 @@ let numMeals = 4;
 let plan = [];
 let swappingIdx = null;
 let swapShowAll = false;
-let modalMode = 'swap'; // 'swap' | 'side' | 'dessert'
+let modalMode = 'swap'; // 'swap' | 'side' | 'dessert' | 'breakfast' | 'lunch'
 let showExtras = false;
+let showBreakfast = false;
+let showLunch = false;
 let currentSeason = '';
 
 function setSeason(s){
@@ -1111,8 +1117,28 @@ function clearAllExtras(){
   plan=plan.map(p=>({...p,side:undefined,dessert:undefined})); renderAll();
 }
 
+function toggleBreakfast(){
+  showBreakfast=!showBreakfast;
+  document.getElementById('breakfast-toggle').textContent=showBreakfast?'🌅 Hide Breakfast':'🌅 Add Breakfast';
+  if(!showBreakfast) plan=plan.map(p=>({...p,breakfast:undefined}));
+  renderAll();
+}
+function toggleLunch(){
+  showLunch=!showLunch;
+  document.getElementById('lunch-toggle').textContent=showLunch?'☀️ Hide Lunch':'☀️ Add Lunch';
+  if(!showLunch) plan=plan.map(p=>({...p,lunch:undefined}));
+  renderAll();
+}
+
+function suggestBreakfast(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')); if(!pool.length) return; plan[i]={...plan[i],breakfast:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function suggestLunch(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')); if(!pool.length) return; plan[i]={...plan[i],lunch:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function clearBreakfast(i){ plan[i]={...plan[i],breakfast:undefined}; renderAll(); }
+function clearLunch(i){ plan[i]={...plan[i],lunch:undefined}; renderAll(); }
+
 function openSidePicker(i){ swappingIdx=i; swapShowAll=false; modalMode='side'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
 function openDessertPicker(i){ swappingIdx=i; swapShowAll=false; modalMode='dessert'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
+function openBreakfastPicker(i){ swappingIdx=i; swapShowAll=false; modalMode='breakfast'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
+function openLunchPicker(i){ swappingIdx=i; swapShowAll=false; modalMode='lunch'; document.getElementById('msearch').value=''; renderModal(); document.getElementById('modal').classList.add('open'); }
 
 // ---- ALGORITHM ----
 // Ingredients excluded from shared-ingredient display and scoring
@@ -1120,7 +1146,7 @@ const SHARED_BLOCKLIST = new Set([
   'butter','olive oil','salt','pepper','black pepper','kosher salt','garlic',
   'onion','olive oil','vegetable oil','canola oil','water','sugar','flour',
   'all-purpose flour','baking soda','baking powder','vanilla','eggs','egg',
-  'cauliflower','broccoli',
+  'cauliflower','broccoli','gnocchi',
 ]);
 
 function scoreSet(recipes) {
@@ -1244,6 +1270,22 @@ function renderCards(){
         </select>
         <button class="btn-swap" onclick="openSwap(${i})">Swap ↔</button>
       </div>
+      ${showBreakfast?`<div class="card-extras">
+        <div class="extra-row">
+          <span class="extra-label">🌅 Breakfast</span>
+          ${plan[i].breakfast
+            ?`<div class="extra-filled"><span class="extra-name" title="${plan[i].breakfast.name}">${plan[i].breakfast.name}</span><button class="btn-extra" onclick="openBreakfastPicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearBreakfast(${i})" title="Remove">✕</button></div>`
+            :`<button class="btn-extra" onclick="suggestBreakfast(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openBreakfastPicker(${i})">+ Pick</button>`}
+        </div>
+      </div>`:''}
+      ${showLunch?`<div class="card-extras">
+        <div class="extra-row">
+          <span class="extra-label">☀️ Lunch</span>
+          ${plan[i].lunch
+            ?`<div class="extra-filled"><span class="extra-name" title="${plan[i].lunch.name}">${plan[i].lunch.name}</span><button class="btn-extra" onclick="openLunchPicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearLunch(${i})" title="Remove">✕</button></div>`
+            :`<button class="btn-extra" onclick="suggestLunch(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openLunchPicker(${i})">+ Pick</button>`}
+        </div>
+      </div>`:''}
       ${showExtras?`<div class="card-extras">
         <div class="extra-row">
           <span class="extra-label">🥗 Side</span>
@@ -1314,6 +1356,14 @@ function renderModal(){
     title='Choose a dessert';
     opts=R.filter(r=>r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     noteEl.style.display='none';
+  } else if(modalMode==='breakfast'){
+    title='Choose a breakfast';
+    opts=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
+    noteEl.style.display='none';
+  } else if(modalMode==='lunch'){
+    title='Choose a lunch';
+    opts=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
+    noteEl.style.display='none';
   } else {
     title='Choose a recipe';
     const rules=day?DAY_RULES[day]:null;
@@ -1344,9 +1394,11 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 function doSwap(id){
   if(swappingIdx===null)return;
   const r=R.find(x=>x.id===id); if(!r)return;
-  if(modalMode==='side')       plan[swappingIdx]={...plan[swappingIdx],side:r};
-  else if(modalMode==='dessert') plan[swappingIdx]={...plan[swappingIdx],dessert:r};
-  else                           plan[swappingIdx]={...plan[swappingIdx],r};
+  if(modalMode==='side')            plan[swappingIdx]={...plan[swappingIdx],side:r};
+  else if(modalMode==='dessert')    plan[swappingIdx]={...plan[swappingIdx],dessert:r};
+  else if(modalMode==='breakfast')  plan[swappingIdx]={...plan[swappingIdx],breakfast:r};
+  else if(modalMode==='lunch')      plan[swappingIdx]={...plan[swappingIdx],lunch:r};
+  else                              plan[swappingIdx]={...plan[swappingIdx],r};
   closeModal(); renderAll();
 }
 function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();}
