@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dinner Planner</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
@@ -177,9 +178,48 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   body{background:#fff}
   .box,.meal-card{box-shadow:none;break-inside:avoid}
 }
+#auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+#auth-overlay.hidden{display:none}
+.auth-box{background:var(--card);border-radius:12px;padding:2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.12)}
+.auth-box h2{font-size:1.4rem;margin-bottom:.3rem;color:var(--accent);text-align:center}
+.auth-box .auth-sub{font-size:.83rem;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.auth-field{margin-bottom:.85rem}
+.auth-field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.3rem;color:var(--muted)}
+.auth-field input{width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;background:var(--bg)}
+.auth-field input:focus{outline:none;border-color:var(--accent)}
+.auth-btn-row{margin-top:1.25rem}
+.auth-btn-row button{width:100%}
+.auth-err{font-size:.82rem;margin-top:.75rem;min-height:1.1em;text-align:center}
+.auth-err.err{color:#c0392b}
+.auth-err.ok{color:var(--quick)}
+.auth-toggle{text-align:center;margin-top:1rem;font-size:.83rem;color:var(--muted)}
+.auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:underline}
+#user-info{font-size:.8rem;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:.6rem}
 </style>
 </head>
 <body>
+<div id="auth-overlay">
+  <div class="auth-box">
+    <h2>🍽 Dinner Planner</h2>
+    <p class="auth-sub" id="auth-subtitle">Sign in to access your recipes</p>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <div class="auth-btn-row">
+      <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a onclick="toggleAuthMode()"><span id="auth-toggle-link"> Sign up</span></a>
+    </div>
+  </div>
+</div>
 <header>
   <div><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
   <div class="print-hide" style="display:flex;gap:.6rem;align-items:center">
@@ -191,6 +231,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
     <label class="btn btn-outline" style="cursor:pointer" title="Restore recipes from a backup file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importRecipes(event)"></label>
     <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
+    <div id="user-info" style="display:none"><span id="user-email"></span><button class="btn btn-outline" onclick="doSignOut()">Sign out</button></div>
   </div>
 </header>
 
@@ -393,8 +434,8 @@ let TAGS = [
   {id:'slow-cooker',       label:'Slow Cooker',  emoji:'🥘'},
   {id:'side',              label:'Side dish',    emoji:'🥗'},
   {id:'dessert',           label:'Dessert',      emoji:'🍰'},
+  {id:'condiment',         label:'Condiment',    emoji:'🫙'},
 ];
-const LS_TAGS_KEY = 'dinner-planner-tags-v1';
 const TAG_PALETTE = [
   {bg:'#fce8ff',color:'#7a3080'},{bg:'#e4f0e4',color:'#3a6a3a'},
   {bg:'#fff8e0',color:'#a07020'},{bg:'#eaf0ea',color:'#336633'},
@@ -431,13 +472,7 @@ function rebuildTagUI(){
   }
 }
 
-function saveTagsToStorage(){ try{ localStorage.setItem(LS_TAGS_KEY, JSON.stringify(TAGS)); }catch(e){} }
-function loadTagsFromStorage(){
-  try{
-    const saved = localStorage.getItem(LS_TAGS_KEY);
-    if(saved){ TAGS = JSON.parse(saved); }
-  }catch(e){}
-}
+function saveTagsToStorage(){ saveToStorage(); }
 
 // ---- TAG MANAGER ----
 function openManageTagsModal(){
@@ -577,6 +612,50 @@ const R = [
     {n:'eggs',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'scallions',c:'produce'},{n:'fresh dill',c:'produce'},{n:'pickled peppers',c:'pantry'},{n:'whole grain mustard',c:'pantry',p:1},{n:'prepared horseradish',c:'pantry'},{n:'lemon',c:'produce'},{n:'bread',c:'pantry'}]},
   {id:40,name:'Garlic Butter Angel Hair (salmon side)',src:'NYT Easy Weeknight Dinners',page:'p.130',time:'quick',tags:[],note:'Side dish — serve with pan-fried salmon',ings:[
     {n:'angel hair pasta',c:'pantry'},{n:'cherry tomatoes',c:'produce'},{n:'garlic',c:'produce'},{n:'fresh basil',c:'produce'},{n:'butter',c:'dairy',p:1}]},
+  {id:41,name:'Meatloaf',src:'Talking Meals',page:'',time:'moderate',tags:['daughter-approved'],note:'Homemade ketchup is best; be generous with the pepper',ings:[
+    {n:'ground beef (2 lb)',c:'protein'},{n:'grated parmesan',c:'dairy'},{n:'onion',c:'produce'},{n:'egg',c:'dairy'},{n:'ketchup',c:'pantry',p:1}]},
+  {id:42,name:'Oklahoma-Style Onion Burgers',src:'J. Kenji López-Alt',page:'',time:'quick',tags:['daughter-approved'],ings:[
+    {n:'ground beef',c:'protein'},{n:'onion',c:'produce'},{n:'American cheese',c:'dairy'},{n:'hamburger buns',c:'pantry'},{n:'canola oil',c:'pantry',p:1},{n:'mustard & pickles',c:'pantry',p:1}]},
+  {id:43,name:'Tuna Salad How I Like It',src:'Carla Lalli Music',page:'',time:'quick',tags:[],note:'Lunch; can use banana peppers',ings:[
+    {n:'canned tuna (2 cans)',c:'pantry'},{n:'shallot',c:'produce'},{n:'lemon',c:'produce'},{n:'mayonnaise',c:'pantry',p:1},{n:'prepared horseradish',c:'pantry',p:1},{n:'pepperoncini peppers',c:'pantry'},{n:'hot sauce',c:'pantry',p:1}]},
+  {id:44,name:'Pear & Pecan Salad with Creamy Lemon Dressing',src:'Two Peas & Their Pod',page:'',time:'quick',tags:['side','vegetarian'],ings:[
+    {n:'romaine lettuce (2 heads)',c:'produce'},{n:'pears (2 large)',c:'produce'},{n:'candied pecans',c:'specialty'},{n:'aged white cheddar',c:'dairy'},{n:'crème fraiche or Greek yogurt',c:'dairy'},{n:'lemon',c:'produce'},{n:'honey or maple syrup',c:'pantry',p:1},{n:'fresh chives',c:'produce'}]},
+  {id:45,name:'Breaded Beans & Sage Cashew Cream',src:'Justine Doiron',page:'',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],ings:[
+    {n:'raw cashews',c:'specialty'},{n:'butter beans (2 cans)',c:'pantry'},{n:'all-purpose flour',c:'pantry',p:1},{n:'fresh rosemary',c:'produce'},{n:'lemon',c:'produce'},{n:'balsamic glaze',c:'pantry',p:1},{n:'fresh thyme',c:'produce'},{n:'garlic powder, nutmeg, chili powder, red pepper flakes',c:'pantry',p:1}]},
+  {id:46,name:'Cucumber & Tomato Salad',src:'Jair Trivino',page:'',time:'quick',tags:['side','vegetarian','fiber'],ings:[
+    {n:'feta cheese',c:'dairy'},{n:'tomatoes',c:'produce'},{n:'cucumber',c:'produce'},{n:'garlic',c:'produce'},{n:'white vinegar',c:'pantry',p:1}]},
+  {id:47,name:"Molly Baz's Egg Salad Sandwich",src:'Molly Baz',page:'',time:'quick',tags:[],note:'Lunch; can use banana peppers',ings:[
+    {n:'eggs (4)',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'cornichons or gherkins',c:'pantry'},{n:'capers',c:'pantry',p:1},{n:'dijon mustard',c:'pantry',p:1},{n:'whole grain mustard',c:'pantry',p:1},{n:'fresh dill',c:'produce'},{n:'extra virgin olive oil',c:'pantry',p:1},{n:'lemon',c:'produce'},{n:'bread',c:'pantry'}]},
+  {id:48,name:'Tomato Soup',src:'Ree Drummond',page:'',time:'quick',tags:[],note:'Add 1-2 cups arborio rice for tomato rice soup',ings:[
+    {n:'white or yellow onion',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'diced tomatoes (2 cans)',c:'pantry'},{n:'tomato juice (46 oz bottle)',c:'pantry'},{n:'sugar',c:'pantry',p:1},{n:'chicken base or bouillon',c:'pantry'},{n:'heavy cream',c:'dairy'},{n:'fresh basil',c:'produce'},{n:'flat-leaf parsley',c:'produce'},{n:'sherry (optional)',c:'specialty'}]},
+  {id:49,name:'Anchovy Butter Roasted Chicken',src:'Alison Roman',page:'',time:'moderate',tags:[],ings:[
+    {n:'whole chicken',c:'protein'},{n:'red onions',c:'produce'},{n:'fresh thyme',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'anchovies',c:'specialty'},{n:'crusty sourdough bread',c:'pantry'}]},
+  {id:50,name:'Creamy Goat Cheese Pasta',src:'Melissa Clark',page:'',time:'quick',tags:['vegetarian'],note:'Can sub crème fraiche for goat cheese; lemon zest would be delicious',ings:[
+    {n:'short pasta (1 lb)',c:'pantry'},{n:'garlic',c:'produce'},{n:'cherry tomatoes (4 cups)',c:'produce'},{n:'fresh thyme',c:'produce'},{n:'goat cheese (6 oz)',c:'dairy'},{n:'heavy cream',c:'dairy'},{n:'parmesan',c:'dairy'},{n:'fresh basil',c:'produce'},{n:'olive oil',c:'pantry',p:1},{n:'red pepper flakes',c:'pantry',p:1}]},
+  {id:51,name:"Bri's October Wedding Cake",src:'Bri Esposito',page:'',time:'weekend',tags:['dessert'],ings:[
+    {n:'good cocoa powder',c:'pantry'},{n:'buttermilk',c:'dairy'},{n:'vegetable oil',c:'pantry',p:1},{n:'eggs',c:'dairy'},{n:'brewed coffee',c:'pantry',p:1},{n:'flour',c:'pantry',p:1},{n:'sugar',c:'pantry',p:1}]},
+  {id:52,name:'LBC Artichoke Dip',src:'Lafayette Brewing Co.',page:'',time:'quick',tags:['side','vegetarian'],ings:[
+    {n:'cream cheese (1 lb)',c:'dairy'},{n:'sour cream',c:'dairy'},{n:'canned artichokes',c:'pantry'},{n:'parmesan',c:'dairy'},{n:'crushed red pepper',c:'pantry',p:1},{n:'oregano',c:'pantry',p:1}]},
+  {id:53,name:'Wine Braised Lentils',src:'Love Soup',page:'',time:'moderate',tags:['vegetarian','fiber'],note:'Serve on buttered toast rubbed with garlic; different from id:28',ings:[
+    {n:'french green lentils',c:'pantry'},{n:'onion',c:'produce'},{n:'celery',c:'produce'},{n:'carrot',c:'produce'},{n:'garlic',c:'produce'},{n:'tomato paste',c:'pantry',p:1},{n:'dry red wine',c:'pantry',p:1},{n:'Dijon mustard',c:'pantry',p:1},{n:'butter or walnut oil',c:'dairy',p:1},{n:'bread',c:'pantry'}]},
+  {id:54,name:"Nana's Egg Dumplings",src:'Nana (Grace Szacka)',page:'',time:'quick',tags:['side'],note:'Serve in broth or alongside a main',ings:[
+    {n:'eggs (4)',c:'dairy'},{n:'flour',c:'pantry',p:1}]},
+  {id:55,name:'Bacon Cheddar Quiche',src:'Melissa Clark',page:'',time:'moderate',tags:[],ings:[
+    {n:'pie crust',c:'pantry'},{n:'eggs (3)',c:'dairy'},{n:'heavy cream',c:'dairy'},{n:'shredded cheddar',c:'dairy'},{n:'bacon (6 strips)',c:'protein'},{n:'dried sage',c:'pantry',p:1},{n:'nutmeg',c:'pantry',p:1}]},
+  {id:56,name:'Kewpie Egg Salad',src:'Bri Esposito',page:'',time:'quick',tags:[],note:'Lunch',ings:[
+    {n:'hard boiled eggs (6)',c:'dairy'},{n:'kewpie mayonnaise',c:'specialty'},{n:'dijon mustard',c:'pantry',p:1},{n:'lemon',c:'produce'},{n:'fresh chives',c:'produce'},{n:'fresh dill',c:'produce'}]},
+  {id:57,name:'Homemade BBQ Pizza',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],ings:[
+    {n:'pizza or flatbread dough',c:'pantry'},{n:'BBQ sauce',c:'pantry',p:1},{n:'mozzarella or cheddar',c:'dairy'},{n:'grated gouda',c:'dairy'},{n:'shredded cabbage',c:'produce'},{n:'chicken or smoked pork',c:'protein'},{n:'pickled shallots or banana peppers',c:'pantry'},{n:'garlic butter',c:'dairy',p:1},{n:'ranch dressing',c:'pantry',p:1}]},
+  {id:58,name:'Olive Pot Chicken Barley Soup',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],note:"Better Than Bouillon is really good in this one",ings:[
+    {n:'mirepoix (carrots, celery, onion)',c:'produce'},{n:'fennel bulb',c:'produce'},{n:'butter',c:'dairy',p:1},{n:'chicken broth',c:'pantry'},{n:'milk',c:'dairy'},{n:'shredded chicken',c:'protein'},{n:'cooked barley',c:'pantry'}]},
+  {id:59,name:'Chocolate Chip Cookies',src:'Pinch of Yum',page:'',time:'moderate',tags:['dessert'],ings:[
+    {n:'salted butter',c:'dairy'},{n:'egg',c:'dairy'},{n:'all-purpose flour',c:'pantry',p:1},{n:'chocolate chips',c:'pantry'},{n:'white sugar',c:'pantry',p:1},{n:'light brown sugar',c:'pantry',p:1},{n:'vanilla',c:'pantry',p:1},{n:'baking soda',c:'pantry',p:1}]},
+  {id:60,name:'Black Bean Pico',src:'Cate Linden',page:'',time:'quick',tags:['side','vegetarian','fiber'],ings:[
+    {n:'canned black beans',c:'pantry'},{n:'golden corn (canned)',c:'pantry'},{n:'Roma tomatoes',c:'produce'},{n:'red onion',c:'produce'},{n:'jalapeno',c:'produce'},{n:'garlic',c:'produce'},{n:'lime',c:'produce'},{n:'Tajin',c:'specialty'},{n:'hot sauce',c:'pantry',p:1}]},
+  {id:61,name:'Pistou',src:'Zoe Barrie',page:'',time:'quick',tags:['condiment','vegetarian'],ings:[
+    {n:'raw almonds',c:'specialty'},{n:'fresh basil',c:'produce'},{n:'garlic',c:'produce'},{n:'red wine vinegar',c:'pantry',p:1},{n:'honey',c:'pantry',p:1},{n:'olive oil',c:'pantry',p:1}]},
+  {id:62,name:'Homemade Ranch Dressing',src:'Cookie + Kate',page:'',time:'quick',tags:['condiment','vegetarian'],note:'Add finely diced jalapeño for spicy ranch',ings:[
+    {n:'sour cream',c:'dairy'},{n:'buttermilk',c:'dairy'},{n:'mayonnaise',c:'pantry',p:1},{n:'fresh parsley',c:'produce'},{n:'fresh dill',c:'produce'},{n:'fresh chives',c:'produce'},{n:'garlic',c:'produce'},{n:'lemon',c:'produce'}]},
 ];
 
 // ---- DATABASE VIEW ----
@@ -742,24 +821,71 @@ function saveRecipe(){
   setTimeout(()=>btn.textContent=orig,2000);
 }
 
-// ---- PERSISTENCE ----
-const LS_KEY = 'dinner-planner-recipes-v1';
+// ---- SUPABASE + PERSISTENCE ----
+const SUPABASE_URL = 'https://zymvsdkwmdhrwjycxisr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_svwMiYGDfWnINCeo28XiLw_UIFHRUg5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function saveToStorage(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(R)); } catch(e){}
+let _authMode = 'signin';
+function toggleAuthMode(){
+  _authMode = _authMode==='signin'?'signup':'signin';
+  document.getElementById('auth-btn').textContent = _authMode==='signin'?'Sign In':'Sign Up';
+  document.getElementById('auth-subtitle').textContent = _authMode==='signin'?'Sign in to access your recipes':'Create your account';
+  document.getElementById('auth-toggle-text').textContent = _authMode==='signin'?"Don't have an account?":'Already have an account?';
+  document.getElementById('auth-toggle-link').textContent = _authMode==='signin'?' Sign up':' Sign in';
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('auth-err').className='auth-err';
 }
 
-function loadFromStorage(){
-  try{
-    const saved = localStorage.getItem(LS_KEY);
-    if(saved){
-      const data = JSON.parse(saved);
-      R.length = 0;
-      data.forEach(r=>R.push(r));
-      nextId = Math.max(...R.map(r=>r.id), 0) + 1;
-    }
-  } catch(e){}
+async function authSubmit(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-err');
+  errEl.textContent=''; errEl.className='auth-err';
+  if(!email||!pass){ errEl.textContent='Please enter your email and password.'; errEl.className='auth-err err'; return; }
+  const {data,error} = _authMode==='signin'
+    ? await sb.auth.signInWithPassword({email,password:pass})
+    : await sb.auth.signUp({email,password:pass});
+  if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
+  if(_authMode==='signup'&&!data.session){ errEl.textContent='✓ Check your email to confirm your account.'; errEl.className='auth-err ok'; }
 }
+
+async function doSignOut(){ await sb.auth.signOut(); }
+
+let _saveTimer = null;
+async function _doSave(){
+  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
+  await sb.from('user_data').upsert({user_id:user.id,recipes:R,tags:TAGS,rules:DAY_RULES,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+}
+function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSave,600); }
+
+async function loadUserData(){
+  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
+  const {data} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
+  if(data){
+    if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
+    if(data.tags?.length) TAGS=data.tags;
+    if(data.rules) DAY_RULES=data.rules;
+  } else {
+    R.length=0; nextId=1; // blank slate for new users
+    await _doSave();
+  }
+}
+
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(session){
+    await loadUserData();
+    rebuildTagUI();
+    document.getElementById('auth-overlay').classList.add('hidden');
+    document.getElementById('user-info').style.display='flex';
+    document.getElementById('user-email').textContent=session.user.email;
+    document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
+    document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+  } else {
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    document.getElementById('user-info').style.display='none';
+  }
+});
 
 function exportRecipes(){
   const blob = new Blob([JSON.stringify({recipes:R, tags:TAGS, rules:DAY_RULES}, null, 2)], {type:'application/json'});
@@ -802,7 +928,6 @@ function importRecipes(e){
 
 // ---- DAY RULES ----
 let DAY_RULES = {};
-const LS_RULES_KEY = 'dinner-planner-rules-v1';
 const TIME_RULE_OPTS = [
   {value:'',            label:'Any time'},
   {value:'easy',        label:'🟢 Weeknight-friendly (quick or slow cooker)'},
@@ -837,10 +962,7 @@ function ruleSummary(day){
   return parts.join(' · ');
 }
 
-function saveRulesToStorage(){ try{ localStorage.setItem(LS_RULES_KEY, JSON.stringify(DAY_RULES)); }catch(e){} }
-function loadRulesFromStorage(){
-  try{ const s=localStorage.getItem(LS_RULES_KEY); if(s) DAY_RULES=JSON.parse(s); }catch(e){}
-}
+function saveRulesToStorage(){ saveToStorage(); }
 
 function openRulesModal(){ renderRulesManager(); document.getElementById('rules-modal').classList.add('open'); }
 function closeRulesModal(){ document.getElementById('rules-modal').classList.remove('open'); }
@@ -1190,12 +1312,7 @@ function handleReset(){plan=[];document.getElementById('plan-section').classList
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
 // ---- INIT ----
-loadTagsFromStorage();
-loadRulesFromStorage();
-loadFromStorage();
-rebuildTagUI();
-document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
-document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+rebuildTagUI(); // runs on default tags; rebuilt again after auth loads user data
 </script>
 </body>
 </html>

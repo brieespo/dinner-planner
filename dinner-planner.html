@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dinner Planner</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
@@ -177,9 +178,48 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   body{background:#fff}
   .box,.meal-card{box-shadow:none;break-inside:avoid}
 }
+#auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+#auth-overlay.hidden{display:none}
+.auth-box{background:var(--card);border-radius:12px;padding:2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.12)}
+.auth-box h2{font-size:1.4rem;margin-bottom:.3rem;color:var(--accent);text-align:center}
+.auth-box .auth-sub{font-size:.83rem;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.auth-field{margin-bottom:.85rem}
+.auth-field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.3rem;color:var(--muted)}
+.auth-field input{width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;background:var(--bg)}
+.auth-field input:focus{outline:none;border-color:var(--accent)}
+.auth-btn-row{margin-top:1.25rem}
+.auth-btn-row button{width:100%}
+.auth-err{font-size:.82rem;margin-top:.75rem;min-height:1.1em;text-align:center}
+.auth-err.err{color:#c0392b}
+.auth-err.ok{color:var(--quick)}
+.auth-toggle{text-align:center;margin-top:1rem;font-size:.83rem;color:var(--muted)}
+.auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:underline}
+#user-info{font-size:.8rem;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:.6rem}
 </style>
 </head>
 <body>
+<div id="auth-overlay">
+  <div class="auth-box">
+    <h2>🍽 Dinner Planner</h2>
+    <p class="auth-sub" id="auth-subtitle">Sign in to access your recipes</p>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <div class="auth-btn-row">
+      <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a onclick="toggleAuthMode()"><span id="auth-toggle-link"> Sign up</span></a>
+    </div>
+  </div>
+</div>
 <header>
   <div><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
   <div class="print-hide" style="display:flex;gap:.6rem;align-items:center">
@@ -191,6 +231,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
     <label class="btn btn-outline" style="cursor:pointer" title="Restore recipes from a backup file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importRecipes(event)"></label>
     <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
+    <div id="user-info" style="display:none"><span id="user-email"></span><button class="btn btn-outline" onclick="doSignOut()">Sign out</button></div>
   </div>
 </header>
 
@@ -395,7 +436,6 @@ let TAGS = [
   {id:'dessert',           label:'Dessert',      emoji:'🍰'},
   {id:'condiment',         label:'Condiment',    emoji:'🫙'},
 ];
-const LS_TAGS_KEY = 'dinner-planner-tags-v1';
 const TAG_PALETTE = [
   {bg:'#fce8ff',color:'#7a3080'},{bg:'#e4f0e4',color:'#3a6a3a'},
   {bg:'#fff8e0',color:'#a07020'},{bg:'#eaf0ea',color:'#336633'},
@@ -432,13 +472,7 @@ function rebuildTagUI(){
   }
 }
 
-function saveTagsToStorage(){ try{ localStorage.setItem(LS_TAGS_KEY, JSON.stringify(TAGS)); }catch(e){} }
-function loadTagsFromStorage(){
-  try{
-    const saved = localStorage.getItem(LS_TAGS_KEY);
-    if(saved){ TAGS = JSON.parse(saved); }
-  }catch(e){}
-}
+function saveTagsToStorage(){ saveToStorage(); }
 
 // ---- TAG MANAGER ----
 function openManageTagsModal(){
@@ -787,24 +821,71 @@ function saveRecipe(){
   setTimeout(()=>btn.textContent=orig,2000);
 }
 
-// ---- PERSISTENCE ----
-const LS_KEY = 'dinner-planner-recipes-v1';
+// ---- SUPABASE + PERSISTENCE ----
+const SUPABASE_URL = 'https://zymvsdkwmdhrwjycxisr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_svwMiYGDfWnINCeo28XiLw_UIFHRUg5';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function saveToStorage(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(R)); } catch(e){}
+let _authMode = 'signin';
+function toggleAuthMode(){
+  _authMode = _authMode==='signin'?'signup':'signin';
+  document.getElementById('auth-btn').textContent = _authMode==='signin'?'Sign In':'Sign Up';
+  document.getElementById('auth-subtitle').textContent = _authMode==='signin'?'Sign in to access your recipes':'Create your account';
+  document.getElementById('auth-toggle-text').textContent = _authMode==='signin'?"Don't have an account?":'Already have an account?';
+  document.getElementById('auth-toggle-link').textContent = _authMode==='signin'?' Sign up':' Sign in';
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('auth-err').className='auth-err';
 }
 
-function loadFromStorage(){
-  try{
-    const saved = localStorage.getItem(LS_KEY);
-    if(saved){
-      const data = JSON.parse(saved);
-      R.length = 0;
-      data.forEach(r=>R.push(r));
-      nextId = Math.max(...R.map(r=>r.id), 0) + 1;
-    }
-  } catch(e){}
+async function authSubmit(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-err');
+  errEl.textContent=''; errEl.className='auth-err';
+  if(!email||!pass){ errEl.textContent='Please enter your email and password.'; errEl.className='auth-err err'; return; }
+  const {data,error} = _authMode==='signin'
+    ? await sb.auth.signInWithPassword({email,password:pass})
+    : await sb.auth.signUp({email,password:pass});
+  if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
+  if(_authMode==='signup'&&!data.session){ errEl.textContent='✓ Check your email to confirm your account.'; errEl.className='auth-err ok'; }
 }
+
+async function doSignOut(){ await sb.auth.signOut(); }
+
+let _saveTimer = null;
+async function _doSave(){
+  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
+  await sb.from('user_data').upsert({user_id:user.id,recipes:R,tags:TAGS,rules:DAY_RULES,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+}
+function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSave,600); }
+
+async function loadUserData(){
+  const {data:{user}} = await sb.auth.getUser(); if(!user) return;
+  const {data} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
+  if(data){
+    if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
+    if(data.tags?.length) TAGS=data.tags;
+    if(data.rules) DAY_RULES=data.rules;
+  } else {
+    R.length=0; nextId=1; // blank slate for new users
+    await _doSave();
+  }
+}
+
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(session){
+    await loadUserData();
+    rebuildTagUI();
+    document.getElementById('auth-overlay').classList.add('hidden');
+    document.getElementById('user-info').style.display='flex';
+    document.getElementById('user-email').textContent=session.user.email;
+    document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
+    document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+  } else {
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    document.getElementById('user-info').style.display='none';
+  }
+});
 
 function exportRecipes(){
   const blob = new Blob([JSON.stringify({recipes:R, tags:TAGS, rules:DAY_RULES}, null, 2)], {type:'application/json'});
@@ -847,7 +928,6 @@ function importRecipes(e){
 
 // ---- DAY RULES ----
 let DAY_RULES = {};
-const LS_RULES_KEY = 'dinner-planner-rules-v1';
 const TIME_RULE_OPTS = [
   {value:'',            label:'Any time'},
   {value:'easy',        label:'🟢 Weeknight-friendly (quick or slow cooker)'},
@@ -882,10 +962,7 @@ function ruleSummary(day){
   return parts.join(' · ');
 }
 
-function saveRulesToStorage(){ try{ localStorage.setItem(LS_RULES_KEY, JSON.stringify(DAY_RULES)); }catch(e){} }
-function loadRulesFromStorage(){
-  try{ const s=localStorage.getItem(LS_RULES_KEY); if(s) DAY_RULES=JSON.parse(s); }catch(e){}
-}
+function saveRulesToStorage(){ saveToStorage(); }
 
 function openRulesModal(){ renderRulesManager(); document.getElementById('rules-modal').classList.add('open'); }
 function closeRulesModal(){ document.getElementById('rules-modal').classList.remove('open'); }
@@ -1235,12 +1312,7 @@ function handleReset(){plan=[];document.getElementById('plan-section').classList
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
 // ---- INIT ----
-loadTagsFromStorage();
-loadRulesFromStorage();
-loadFromStorage();
-rebuildTagUI();
-document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
-document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+rebuildTagUI(); // runs on default tags; rebuilt again after auth loads user data
 </script>
 </body>
 </html>
