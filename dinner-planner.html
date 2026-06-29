@@ -1266,8 +1266,8 @@ function toggleLunch(){
   renderAll();
 }
 
-function suggestBreakfast(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')); if(!pool.length) return; plan[i]={...plan[i],breakfast:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
-function suggestLunch(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')); if(!pool.length) return; plan[i]={...plan[i],lunch:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function suggestBreakfast(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')&&!r.tags.includes('condiment')); if(!pool.length) return; plan[i]={...plan[i],breakfast:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function suggestLunch(i){ const pool=R.filter(r=>!r.tags.includes('side')&&!r.tags.includes('dessert')&&!r.tags.includes('condiment')); if(!pool.length) return; plan[i]={...plan[i],lunch:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
 function clearBreakfast(i){ plan[i]={...plan[i],breakfast:undefined}; renderAll(); }
 function clearLunch(i){ plan[i]={...plan[i],lunch:undefined}; renderAll(); }
 
@@ -1302,7 +1302,7 @@ function suggest(n) {
   const days = DAYS.slice(0, n);
   const result = [];
   const used = new Set();
-  const isMain = r => !r.tags.includes('side') && !r.tags.includes('dessert');
+  const isMain = r => !r.tags.includes('side') && !r.tags.includes('dessert') && !r.tags.includes('condiment');
   const fp = (rules) => {
     const all = R.filter(r => !used.has(r.id) && isMain(r) && passesRules(r, rules||null));
     if(!currentSeason) return all;
