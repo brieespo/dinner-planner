@@ -383,6 +383,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         </div>
       </div>
       <div class="form-row">
+        <label class="form-label">URL <span style="font-weight:400;text-transform:none">(optional — for blog or online recipes)</span></label>
+        <input class="form-input" id="af-url" type="url" placeholder="e.g. https://smittenkitchen.com/...">
+      </div>
+      <div class="form-row">
         <label class="form-label">Note <span style="font-weight:400;text-transform:none">(optional)</span></label>
         <textarea class="form-textarea" id="af-note" placeholder="e.g. Marinate 2 hrs ahead · Better next day"></textarea>
       </div>
@@ -830,6 +834,7 @@ function openAddModal(){
   document.getElementById('af-name').value='';
   document.getElementById('af-src').value='';
   document.getElementById('af-page').value='';
+  document.getElementById('af-url').value='';
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
   document.getElementById('af-instructions').value='';
@@ -851,6 +856,7 @@ function openEditModal(id){
   document.getElementById('af-name').value = r.name;
   document.getElementById('af-src').value = r.src;
   document.getElementById('af-page').value = r.page||'';
+  document.getElementById('af-url').value = r.url||'';
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
   document.getElementById('af-instructions').value = r.instructions||'';
@@ -873,7 +879,10 @@ function openRecipeDetail(id){
   const r = R.find(x=>x.id===id);
   if(!r) return;
   document.getElementById('rd-name').textContent = r.name;
-  document.getElementById('rd-source').textContent = r.src + (r.page ? ' · ' + r.page : '');
+  const srcText = r.src + (r.page ? ' · ' + r.page : '');
+  document.getElementById('rd-source').innerHTML = r.url
+    ? `${srcText} <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:.78rem;margin-left:.3rem">↗ View recipe</a>`
+    : srcText;
   document.getElementById('rd-tags').innerHTML = `${timeTag(r.time,r.tags)}${renderTagChips(r.tags)}`;
   document.getElementById('rd-note').textContent = r.note || '';
   document.getElementById('rd-note').style.display = r.note ? '' : 'none';
@@ -906,6 +915,7 @@ function saveRecipe(){
     name,
     src:document.getElementById('af-src').value.trim()||"Bri's own",
     page:document.getElementById('af-page').value.trim(),
+    url:document.getElementById('af-url').value.trim()||undefined,
     time:document.getElementById('af-time').value,
     tags,
     seasons,
@@ -1345,7 +1355,7 @@ function renderCards(){
       ${currentSeason&&r.seasons?.length?`<div class="${r.seasons.includes(currentSeason)?'in-season-note':''}">
         ${r.seasons.includes(currentSeason)?'✓ In season — ':''}${seasonBadges(r.seasons)}</div>`:''}
       <div class="card-name" title="View full recipe">${r.name}</div>
-      <div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>
+      <div class="card-source">${r.src}${r.page?' · '+r.page:''}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent);font-size:.7rem">↗</a>`:''}</div>
       <div class="card-tags">
         ${timeTag(r.time,r.tags)}
         ${renderTagChips(r.tags)}
