@@ -345,6 +345,14 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <button class="modal-x" onclick="closeAddModal()">✕</button>
     </div>
     <div class="modal-body">
+      <div class="form-row" style="background:var(--accent-light);border-radius:8px;padding:.75rem;border:1px solid var(--accent);margin-bottom:.25rem">
+        <label class="form-label" style="color:var(--accent)">✨ Import from URL</label>
+        <div style="display:flex;gap:.5rem">
+          <input class="form-input" id="af-import-url" type="url" placeholder="Paste a recipe blog link…" style="flex:1">
+          <button class="btn btn-accent btn-sm" id="af-import-btn" onclick="importFromUrl()" style="white-space:nowrap">Import</button>
+        </div>
+        <div id="af-import-status" style="font-size:.78rem;margin-top:.35rem;display:none"></div>
+      </div>
       <div class="form-row">
         <label class="form-label">Recipe name *</label>
         <input class="form-input" id="af-name" type="text" placeholder="e.g. Lemon Herb Roast Chicken">
@@ -831,6 +839,8 @@ function addIngRow(name='',cat='produce',isPantry=false,amount=''){
 function openAddModal(){
   editingId = null;
   document.getElementById('af-modal-title').textContent = 'Add a recipe';
+  document.getElementById('af-import-url').value='';
+  document.getElementById('af-import-status').style.display='none';
   document.getElementById('af-name').value='';
   document.getElementById('af-src').value='';
   document.getElementById('af-page').value='';
@@ -898,6 +908,39 @@ function openRecipeDetail(id){
 }
 function closeRecipeDetail(){ document.getElementById('rd-modal').classList.remove('open'); }
 function handleCardClick(e,id){ if(e.target.closest('button,select,a,.extra-name')) return; openRecipeDetail(id); }
+
+async function importFromUrl(){
+  const url = document.getElementById('af-import-url').value.trim();
+  if(!url){ alert('Please paste a recipe URL first.'); return; }
+  const btn = document.getElementById('af-import-btn');
+  const status = document.getElementById('af-import-status');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  status.style.display = 'block'; status.style.color = 'var(--muted)'; status.textContent = 'Fetching recipe…';
+  try {
+    const res = await fetch('https://zymvsdkwmdhrwjycxisr.supabase.co/functions/v1/scrape-recipe', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    if(data.error){ status.style.color='#c0392b'; status.textContent='⚠ ' + data.error; return; }
+    // Fill form fields
+    if(data.name) document.getElementById('af-name').value = data.name;
+    if(data.src)  document.getElementById('af-src').value  = data.src;
+    if(data.url)  document.getElementById('af-url').value  = data.url;
+    if(data.time) document.getElementById('af-time').value = data.time;
+    if(data.instructions) document.getElementById('af-instructions').value = data.instructions;
+    // Fill ingredients
+    if(data.ings?.length){
+      document.getElementById('af-ings').innerHTML='';
+      data.ings.forEach(i=>addIngRow(i.n, i.c, false, i.a));
+    }
+    status.style.color='green'; status.textContent=`✓ Imported "${data.name}" — review and adjust below.`;
+  } catch(e){
+    status.style.color='#c0392b'; status.textContent='⚠ Network error — check your connection and try again.';
+  } finally {
+    btn.disabled=false; btn.textContent='Import';
+  }
+}
 
 function saveRecipe(){
   const name=document.getElementById('af-name').value.trim();
