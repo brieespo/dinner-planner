@@ -995,7 +995,24 @@ async function loadUserData(user){
     const {data,error} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
     if(error){ console.error('loadUserData error:',error); return; }
     if(data){
-      if(data.recipes?.length){ R.length=0; data.recipes.forEach(r=>R.push(r)); nextId=Math.max(...R.map(r=>r.id),0)+1; }
+      if(data.recipes?.length){
+        R.length=0;
+        let migrated=false;
+        data.recipes.forEach(r=>{
+          const seed=SEED_RECIPES.find(s=>s.id===r.id);
+          if(seed){
+            if(!r.instructions&&seed.instructions){r.instructions=seed.instructions;migrated=true;}
+            r.ings=r.ings.map((ing,i)=>{
+              const si=seed.ings.find(s=>s.n===ing.n);
+              if(si&&!ing.a&&si.a){migrated=true;return{...ing,a:si.a};}
+              return ing;
+            });
+          }
+          R.push(r);
+        });
+        nextId=Math.max(...R.map(r=>r.id),0)+1;
+        if(migrated) saveData();
+      }
       if(data.tags?.length) TAGS=data.tags;
       if(data.rules) DAY_RULES=data.rules;
       if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
