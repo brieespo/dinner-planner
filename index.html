@@ -125,6 +125,13 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .db-card-src{font-size:.74rem;color:var(--muted)}
 .db-card-ings{font-size:.75rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .db-card-foot{display:flex;gap:.4rem;margin-top:auto;padding-top:.65rem;border-top:1px solid var(--border)}
+.btn-fav{background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:0;opacity:.35;transition:opacity .15s,transform .15s}
+.btn-fav:hover{opacity:.7}
+.btn-fav.active{opacity:1}
+.btn-fav.active:hover{transform:scale(1.2)}
+.badge-made{font-size:.65rem;font-weight:700;background:#e8f5e9;color:#2e7d32;border-radius:10px;padding:.1rem .45rem;white-space:nowrap}
+.btn-made{background:none;border:1px dashed var(--border);border-radius:10px;font-size:.65rem;font-weight:600;color:var(--muted);padding:.1rem .45rem;cursor:pointer;white-space:nowrap}
+.btn-made:hover{border-color:var(--accent);color:var(--accent)}
 .btn-edit{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text)}
 .btn-edit:hover{border-color:var(--accent);color:var(--accent)}
 .btn-del{padding:.26rem .7rem;font-size:.76rem;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted)}
@@ -302,6 +309,12 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         <option value="summer">☀️ Summer</option>
         <option value="fall">🍂 Fall</option>
         <option value="winter">❄️ Winter</option>
+      </select>
+      <select class="db-filter" id="db-status" onchange="renderDB()">
+        <option value="">All recipes</option>
+        <option value="fav">⭐ Favorites</option>
+        <option value="made">✓ Made it</option>
+        <option value="new">🆕 Not yet tried</option>
       </select>
       <span class="db-count" id="db-count"></span>
     </div>
@@ -764,6 +777,7 @@ function renderDB(){
   const tFilter = document.getElementById('db-time').value;
   const tagFilter = document.getElementById('db-tag').value;
   const seasonFilter = document.getElementById('db-season').value;
+  const statusFilter = document.getElementById('db-status').value;
   let recipes = R.filter(r=>{
     if(q){
       const inName = r.name.toLowerCase().includes(q);
@@ -774,18 +788,27 @@ function renderDB(){
     if(tFilter && r.time !== tFilter) return false;
     if(tagFilter && !r.tags.includes(tagFilter)) return false;
     if(seasonFilter && !r.seasons?.includes(seasonFilter)) return false;
+    if(statusFilter==='fav' && !r.fav) return false;
+    if(statusFilter==='made' && !r.made) return false;
+    if(statusFilter==='new' && r.made) return false;
     return true;
   });
   document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
   document.getElementById('db-grid').innerHTML = recipes.map(r=>`
     <div class="db-card">
-      <div>
-        <div class="db-card-name">${r.name}</div>
-        <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
+      <div style="display:flex;align-items:flex-start;gap:.4rem">
+        <div style="flex:1">
+          <div class="db-card-name">${r.name}</div>
+          <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
+        </div>
+        <button class="btn-fav${r.fav?' active':''}" onclick="toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">⭐</button>
       </div>
-      <div class="card-tags" style="margin:.1rem 0">
-        ${timeTag(r.time,r.tags)}
-        ${renderTagChips(r.tags)}
+      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+        <div class="card-tags" style="flex:1;margin:.1rem 0">
+          ${timeTag(r.time,r.tags)}
+          ${renderTagChips(r.tags)}
+        </div>
+        ${r.made?`<span class="badge-made">✓ Made it</span>`:`<button class="btn-made" onclick="toggleMade(${r.id})">+ Made it</button>`}
       </div>
       ${r.seasons?.length?`<div style="margin:.1rem 0">${seasonBadges(r.seasons)}</div>`:''}
       ${r.note?`<div class="card-note" style="font-size:.72rem">${r.note}</div>`:''}
@@ -902,6 +925,19 @@ function openRecipeDetail(id){
 }
 function closeRecipeDetail(){ document.getElementById('rd-modal').classList.remove('open'); }
 function handleCardClick(e,id){ if(e.target.closest('button,select,a,.extra-name')) return; openRecipeDetail(id); }
+
+function toggleFav(id){
+  const r = R.find(x=>x.id===id);
+  if(!r) return;
+  r.fav = r.fav ? undefined : true;
+  saveData(); renderAll(); if(dbVisible) renderDB();
+}
+function toggleMade(id){
+  const r = R.find(x=>x.id===id);
+  if(!r) return;
+  r.made = r.made ? undefined : true;
+  saveData(); if(dbVisible) renderDB();
+}
 
 async function importFromUrl(){
   const url = document.getElementById('af-import-url').value.trim();
@@ -1392,7 +1428,10 @@ function renderCards(){
       ${(()=>{const rules=DAY_RULES[day];return rules&&!passesRules(r,rules)?`<div class="card-violation">⚠ Doesn't match ${day}'s rules</div>`:''})()}
       ${currentSeason&&r.seasons?.length?`<div class="${r.seasons.includes(currentSeason)?'in-season-note':''}">
         ${r.seasons.includes(currentSeason)?'✓ In season — ':''}${seasonBadges(r.seasons)}</div>`:''}
-      <div class="card-name" title="View full recipe">${r.name}</div>
+      <div style="display:flex;align-items:flex-start;gap:.3rem">
+        <div class="card-name" style="flex:1" title="View full recipe">${r.name}</div>
+        <button class="btn-fav${r.fav?' active':''}" onclick="event.stopPropagation();toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">⭐</button>
+      </div>
       <div class="card-source">${r.src}${r.page?' · '+r.page:''}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent);font-size:.7rem">↗</a>`:''}</div>
       <div class="card-tags">
         ${timeTag(r.time,r.tags)}
