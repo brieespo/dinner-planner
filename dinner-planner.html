@@ -928,6 +928,7 @@ async function importFromUrl(){
       document.getElementById('af-ings').innerHTML='';
       data.ings.forEach(i=>addIngRow(i.n, i.c, false, i.a));
     }
+    document.getElementById('af-import-url').value='';
     status.style.color='green'; status.textContent=`✓ Imported "${data.name}" — review and adjust below.`;
   } catch(e){
     status.style.color='#c0392b'; status.textContent='⚠ Network error — check your connection and try again.';
