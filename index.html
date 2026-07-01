@@ -121,7 +121,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .db-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
 /* Recipe box tab strip */
 .type-tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem}
-.type-tab{padding:.42rem .9rem;border:1px solid transparent;border-bottom:none;border-radius:7px 7px 0 0;font-size:.8rem;font-weight:500;cursor:pointer;background:#f0ece4;color:var(--muted);margin-bottom:-2px;transition:background .12s,color .12s;white-space:nowrap;font-family:inherit}
+.type-tab{padding:.6rem 1.2rem;border:1px solid transparent;border-bottom:none;border-radius:7px 7px 0 0;font-size:.88rem;font-weight:700;cursor:pointer;background:#f0ece4;color:var(--muted);margin-bottom:-2px;transition:background .12s,color .12s;white-space:nowrap;font-family:inherit}
 .type-tab:hover{background:#e8e3d8;color:var(--text)}
 .type-tab.active{background:var(--bg);color:var(--text);font-weight:700;border-color:var(--border);border-bottom-color:var(--bg)}
 .db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
@@ -299,16 +299,6 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 
   <!-- Database view -->
   <div id="db-section" class="hidden">
-    <div class="type-tabs" id="type-tabs">
-      <button class="type-tab active" onclick="setTypeTab('all')">All</button>
-      <button class="type-tab" onclick="setTypeTab('main')">🍽️ Mains</button>
-      <button class="type-tab" onclick="setTypeTab('side')">🥗 Sides</button>
-      <button class="type-tab" onclick="setTypeTab('dessert')">🍰 Desserts</button>
-      <button class="type-tab" onclick="setTypeTab('condiment')">🧄 Condiments</button>
-      <button class="type-tab" onclick="setTypeTab('breakfast')">🌅 Breakfast</button>
-      <button class="type-tab" onclick="setTypeTab('lunch')">☀️ Lunch</button>
-      <button class="type-tab" onclick="setTypeTab('snack')">🥪 Snacks</button>
-    </div>
     <div class="db-bar">
       <input class="db-search" id="db-search" type="text" placeholder="Search by name, cookbook, or ingredient…" oninput="renderDB()">
       <select class="db-filter" id="db-time" onchange="renderDB()">
@@ -332,6 +322,16 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         <option value="new">🆕 Not yet tried</option>
       </select>
       <span class="db-count" id="db-count"></span>
+    </div>
+    <div class="type-tabs" id="type-tabs">
+      <button class="type-tab active" onclick="setTypeTab('all')">All</button>
+      <button class="type-tab" onclick="setTypeTab('main')">Mains</button>
+      <button class="type-tab" onclick="setTypeTab('side')">Sides</button>
+      <button class="type-tab" onclick="setTypeTab('dessert')">Desserts</button>
+      <button class="type-tab" onclick="setTypeTab('condiment')">Condiments</button>
+      <button class="type-tab" onclick="setTypeTab('breakfast')">Breakfast</button>
+      <button class="type-tab" onclick="setTypeTab('lunch')">Lunch</button>
+      <button class="type-tab" onclick="setTypeTab('snack')">Snacks</button>
     </div>
     <div class="db-grid" id="db-grid"></div>
   </div>
