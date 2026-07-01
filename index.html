@@ -13,6 +13,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 header{background:var(--accent);color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 header h1{font-size:1.4rem;font-weight:700}
 header p{font-size:.82rem;opacity:.85}
+/* More dropdown */
+.more-menu{position:relative}
+.more-menu-panel{display:none;position:absolute;top:calc(100% + .5rem);right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:170px;z-index:200;overflow:hidden}
+.more-menu-panel.open{display:block}
+.more-menu-item{display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem 1rem;font-size:.875rem;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap}
+.more-menu-item:hover{background:#f5f3ee}
+.more-menu-divider{height:1px;background:var(--border);margin:.25rem 0}
+/* Help modal */
+.help-modal{max-width:640px;max-height:80vh;overflow-y:auto}
+.help-section{margin-bottom:1.4rem}
+.help-section h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem;color:var(--accent)}
+.help-section p,.help-section li{font-size:.85rem;color:var(--text);line-height:1.6}
+.help-section ul{padding-left:1.1rem;margin:0}
 .btn{padding:.45rem 1.1rem;border:none;border-radius:6px;font-size:.875rem;font-weight:600;cursor:pointer;transition:opacity .15s}
 .btn:hover{opacity:.88}
 .btn-white{background:#fff;color:var(--accent)}
@@ -272,10 +285,18 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
     <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
     <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
-    <button class="btn btn-outline" onclick="openRulesModal()">📋 Day Rules</button>
-    <button class="btn btn-outline" onclick="openManageTagsModal()">🏷 Tags</button>
-    <button class="btn btn-outline" onclick="exportRecipes()" title="Download your recipe database as a backup file">⬇ Export</button>
-    <button class="btn btn-white print-only-show" onclick="window.print()">🖨 Print</button>
+    <div class="more-menu" id="more-menu">
+      <button class="btn btn-outline" onclick="toggleMoreMenu()">⋯ More</button>
+      <div class="more-menu-panel" id="more-menu-panel">
+        <button class="more-menu-item" onclick="closeMoreMenu();openRulesModal()">📋 Set Daily Rules</button>
+        <button class="more-menu-item" onclick="closeMoreMenu();openManageTagsModal()">🏷 Add New Tags</button>
+        <div class="more-menu-divider"></div>
+        <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
+        <button class="more-menu-item" onclick="closeMoreMenu();window.print()">🖨 Print</button>
+        <div class="more-menu-divider"></div>
+        <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
+      </div>
+    </div>
     <div id="user-info" style="display:none"><span id="user-email"></span><button class="btn btn-outline" onclick="doSignOut()">Sign out</button></div>
   </div>
 </header>
@@ -518,6 +539,57 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     </div>
     <div id="modal-note" style="display:none" class="modal-note"></div>
     <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal-bg" id="help-modal" onclick="if(event.target===this)closeHelpModal()">
+  <div class="add-modal help-modal">
+    <div class="modal-head">
+      <span class="modal-title">How To Use Dinner Planner</span>
+      <button class="btn-close" onclick="closeHelpModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem">
+      <div class="help-section">
+        <h3>📅 Building Your Weekly Plan</h3>
+        <p>The home screen shows a 7-day grid. Use the <strong>Suggest</strong> button on any day to auto-fill a meal from your recipe database, or click <strong>+ Main</strong> to pick one yourself. You can also add sides, desserts, breakfast, and lunch to any day using the buttons below each main course.</p>
+      </div>
+      <div class="help-section">
+        <h3>📖 All Recipes</h3>
+        <p>Click <strong>All Recipes</strong> in the header to browse your full collection. Use the tab strip to filter by category (Mains, Sides, Desserts, etc.), or use the search bar and dropdowns to filter by cook time, tag, season, or status. Click any recipe card to view its full ingredients and instructions.</p>
+      </div>
+      <div class="help-section">
+        <h3>➕ Adding Recipes</h3>
+        <ul>
+          <li><strong>From a URL:</strong> Click <strong>+ Add Recipe</strong>, paste a link to any recipe blog in the import field, and hit Import. The form will auto-fill with the recipe's name, ingredients, and instructions.</li>
+          <li><strong>Manually:</strong> Fill in the form fields yourself. Every recipe needs a name and at least one ingredient. The Type field (Main, Side, Dessert, etc.) determines which tab it appears under in All Recipes.</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>⭐ Favorites & Made It</h3>
+        <p>Click the <strong>☆ star</strong> on any recipe card to mark it as a favorite — the card gets a gold highlight. Click <strong>+ Made it</strong> to log that you've cooked a recipe. Use the status filter in All Recipes to view only Favorites, Made It recipes, or ones you haven't tried yet.</p>
+      </div>
+      <div class="help-section">
+        <h3>🛒 Grocery List</h3>
+        <p>After building your plan, click <strong>Grocery List</strong> to see all ingredients for the week organized by category (produce, protein, dairy, etc.). Check off items as you shop.</p>
+      </div>
+      <div class="help-section">
+        <h3>📋 Day Rules</h3>
+        <p>Under <strong>⋯ More → Day Rules</strong>, you can set preferences for each day of the week — for example, "Meatless Monday" or "Quick meals on weeknights." These guide the Suggest feature when auto-filling your plan.</p>
+      </div>
+      <div class="help-section">
+        <h3>🏷 Tags</h3>
+        <p>Tags let you label recipes with custom categories like "kid-friendly," "meal prep," or "date night." Manage your tag list under <strong>⋯ More → Tags</strong>. You can filter by tag in All Recipes.</p>
+      </div>
+      <div class="help-section">
+        <h3>⬇ Export & Backup</h3>
+        <p>Use <strong>⋯ More → Export Recipes</strong> to download a backup of your entire recipe database as a JSON file. This is useful for safekeeping or for sharing your collection.</p>
+      </div>
+      <div class="help-section">
+        <h3>☁️ Your Account</h3>
+        <p>Sign in with your email to sync your recipes and plan across devices. Your data is saved to the cloud automatically whenever you make changes.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1198,6 +1270,21 @@ sb.auth.onAuthStateChange(async(event,session)=>{
   if(session && event==='SIGNED_IN') await handleAuthSession(session);
   if(!session){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
 });
+
+// ---- MORE MENU ----
+function toggleMoreMenu(){
+  document.getElementById('more-menu-panel').classList.toggle('open');
+}
+function closeMoreMenu(){
+  document.getElementById('more-menu-panel').classList.remove('open');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#more-menu')) closeMoreMenu();
+});
+
+// ---- HELP MODAL ----
+function openHelpModal(){ document.getElementById('help-modal').classList.add('open'); }
+function closeHelpModal(){ document.getElementById('help-modal').classList.remove('open'); }
 
 function exportRecipes(){
   const blob = new Blob([JSON.stringify({recipes:R, tags:TAGS, rules:DAY_RULES}, null, 2)], {type:'application/json'});
