@@ -119,6 +119,15 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .db-search:focus{border-color:var(--accent)}
 .db-filter{padding:.38rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
 .db-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.btn-view-toggle{padding:.38rem .7rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;background:var(--bg);color:var(--muted);cursor:pointer;font-weight:600;white-space:nowrap}
+.btn-view-toggle.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.type-section{margin-bottom:1.5rem}
+.type-section-header{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.5rem .1rem;border-bottom:2px solid var(--border);margin-bottom:.85rem;user-select:none}
+.type-section-header:hover{border-color:var(--accent)}
+.type-section-title{font-size:1rem;font-weight:700;flex:1}
+.type-section-count{font-size:.78rem;color:var(--muted);font-weight:400}
+.type-section-arrow{font-size:.8rem;color:var(--muted);transition:transform .2s}
+.type-section-arrow.collapsed{transform:rotate(-90deg)}
 .db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
 .db-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.45rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .db-card-name{font-size:.9rem;font-weight:700;line-height:1.3}
@@ -295,6 +304,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   <!-- Database view -->
   <div id="db-section" class="hidden">
     <div class="db-bar">
+      <button class="btn-view-toggle active" id="db-view-btn" onclick="toggleDBView()" title="Switch view">⊞ Grouped</button>
       <input class="db-search" id="db-search" type="text" placeholder="Search by name, cookbook, or ingredient…" oninput="renderDB()">
       <select class="db-filter" id="db-time" onchange="renderDB()">
         <option value="">All times</option>
@@ -382,6 +392,18 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       </div>
       <div class="form-row-2">
         <div>
+          <label class="form-label">Type</label>
+          <select class="form-select" id="af-type">
+            <option value="main">🍽️ Main</option>
+            <option value="side">🥗 Side</option>
+            <option value="dessert">🍰 Dessert</option>
+            <option value="condiment">🧄 Condiment</option>
+            <option value="breakfast">🌅 Breakfast</option>
+            <option value="lunch">☀️ Lunch</option>
+            <option value="snack">🥪 Snack</option>
+          </select>
+        </div>
+        <div>
           <label class="form-label">Cook time</label>
           <select class="form-select" id="af-time">
             <option value="quick">🟢 Quick (under 35 min)</option>
@@ -389,10 +411,10 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
             <option value="weekend">🔴 Weekend project</option>
           </select>
         </div>
-        <div>
-          <label class="form-label">Tags</label>
-          <div class="tags-grid" id="af-tags-grid" style="margin-top:.15rem"></div>
-        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Tags</label>
+        <div class="tags-grid" id="af-tags-grid" style="margin-top:.15rem"></div>
       </div>
       <div class="form-row">
         <label class="form-label">Best seasons <span style="font-weight:400;text-transform:none">(optional — leave blank for year-round)</span></label>
@@ -639,119 +661,119 @@ function deleteTag(id){
 }
 
 const R = [
-  {id:1,name:'Cumin-Roasted Cauliflower & Dates',src:'Alison Roman — Dining In',page:'p.51',time:'quick',tags:['vegetarian','fiber','healthy-fats'],note:'Pair with salmon or protein — not standalone',ings:[
+  {id:1,name:'Cumin-Roasted Cauliflower & Dates',src:'Alison Roman — Dining In',page:'p.51',time:'quick',tags:['vegetarian','fiber','healthy-fats'],type:'main',note:'Pair with salmon or protein — not standalone',ings:[
     {n:'cauliflower',c:'produce'},{n:'Medjool dates',c:'produce'},{n:'tahini',c:'pantry'},{n:'pine nuts',c:'specialty'},{n:'scallions',c:'produce'},{n:'fresh mint',c:'produce'},{n:'fresh cilantro',c:'produce'},{n:'sherry vinegar',c:'pantry'}]},
-  {id:2,name:'Vinegar-Braised Chicken with Farro & Watercress',src:'Alison Roman — Dining In',page:'p.221',time:'weekend',tags:['fiber'],ings:[
+  {id:2,name:'Vinegar-Braised Chicken with Farro & Watercress',src:'Alison Roman — Dining In',page:'p.221',time:'weekend',tags:['fiber'],type:'main',ings:[
     {n:'bone-in chicken pieces',c:'protein'},{n:'farro',c:'pantry'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'watercress',c:'produce'},{n:'yuzu kosho',c:'specialty'},{n:'vinegar',c:'pantry',p:1}]},
-  {id:3,name:'Chicken with Dates & Caramelized Lemon',src:'Alison Roman — Nothing Fancy',page:'p.194',time:'moderate',tags:['daughter-approved'],note:'Make with mustard croutons',ings:[
+  {id:3,name:'Chicken with Dates & Caramelized Lemon',src:'Alison Roman — Nothing Fancy',page:'p.194',time:'moderate',tags:['daughter-approved'],type:'main',note:'Make with mustard croutons',ings:[
     {n:'bone-in skin-on chicken thighs',c:'protein'},{n:'Medjool dates',c:'produce'},{n:'lemon',a:'1',c:'produce'},{n:'shallots',a:'2 large',c:'produce'},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'bread (for croutons)',c:'pantry'},{n:'Dijon mustard',a:'1 tbsp',c:'pantry',p:1}]},
-  {id:4,name:'Sausages with Peaches, Fennel & Spinach',src:'Hot Sheet',page:'p.105',time:'quick',tags:['daughter-approved','fiber'],seasons:['summer'],ings:[
+  {id:4,name:'Sausages with Peaches, Fennel & Spinach',src:'Hot Sheet',page:'p.105',time:'quick',tags:['daughter-approved','fiber'],type:'main',seasons:['summer'],ings:[
     {n:'chicken apple sausages (TJ\'s)',c:'protein'},{n:'fennel bulbs',c:'produce'},{n:'shallots',a:'2 large',c:'produce'},{n:'frozen sliced peaches',c:'frozen'},{n:'baby spinach',a:'5 oz',c:'produce'},{n:'fresh basil',a:'handful',c:'produce'},{n:'balsamic vinegar',c:'pantry',p:1}]},
-  {id:5,name:'Cheesy Orzo with Mushrooms',src:'Hot Sheet',page:'p.195',time:'quick',tags:['vegetarian','fiber'],instructions:'Sauté onion in oil until soft. Add mushrooms and cook until golden and all moisture evaporates, ~8 min. Add orzo and toast 1 min. Add broth, bring to a simmer, cook stirring often until orzo is al dente and broth is absorbed, ~10 min. Remove from heat. Stir in mustard and parmesan. Top with burrata and parsley.',ings:[
+  {id:5,name:'Cheesy Orzo with Mushrooms',src:'Hot Sheet',page:'p.195',time:'quick',tags:['vegetarian','fiber'],type:'main',instructions:'Sauté onion in oil until soft. Add mushrooms and cook until golden and all moisture evaporates, ~8 min. Add orzo and toast 1 min. Add broth, bring to a simmer, cook stirring often until orzo is al dente and broth is absorbed, ~10 min. Remove from heat. Stir in mustard and parmesan. Top with burrata and parsley.',ings:[
     {n:'cremini mushrooms',a:'1 lb',c:'produce'},{n:'yellow onion',a:'1 medium',c:'produce'},{n:'orzo',a:'1 cup',c:'pantry'},{n:'chicken or vegetable broth',a:'2½ cups',c:'pantry'},{n:'Dijon mustard',a:'1 tbsp',c:'pantry',p:1},{n:'burrata or fresh mozzarella',a:'8 oz',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'flat-leaf parsley',a:'handful',c:'produce'}]},
-  {id:6,name:'Gnocchi with Broccoli & Lemony Goat Cheese',src:'Hot Sheet',page:'p.203',time:'quick',tags:['vegetarian'],instructions:'Pan-fry gnocchi in olive oil until golden and crispy, ~4 min. Remove and set aside. In same pan, cook broccoli until tender-crisp. Add cream, lemon zest, and goat cheese; stir until creamy sauce forms. Return gnocchi to pan, toss to coat. Top with parmesan and basil.',ings:[
+  {id:6,name:'Gnocchi with Broccoli & Lemony Goat Cheese',src:'Hot Sheet',page:'p.203',time:'quick',tags:['vegetarian'],type:'main',instructions:'Pan-fry gnocchi in olive oil until golden and crispy, ~4 min. Remove and set aside. In same pan, cook broccoli until tender-crisp. Add cream, lemon zest, and goat cheese; stir until creamy sauce forms. Return gnocchi to pan, toss to coat. Top with parmesan and basil.',ings:[
     {n:'store-bought gnocchi',a:'1 lb',c:'pantry'},{n:'broccoli or broccolini',a:'1 bunch',c:'produce'},{n:'goat cheese',a:'4 oz',c:'dairy'},{n:'lemon',a:'1',c:'produce'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'fresh basil',a:'handful',c:'produce'}]},
-  {id:7,name:'Halal Cart-Style Street Chicken',src:'Kenji López-Alt',page:'',time:'moderate',tags:['daughter-approved'],note:'Sloane loves this one',instructions:'Marinate chicken in lemon juice, garlic, olive oil, oregano, turmeric, cumin, salt, and pepper for at least 1 hour. Cook rice in broth with turmeric. Grill or pan-sear chicken over high heat until charred and cooked through, ~5–6 min per side. Rest and slice. Make white sauce: whisk yogurt, mayo, lemon juice, garlic, salt. Serve chicken over rice with white sauce, pita, and tomatoes.',ings:[
+  {id:7,name:'Halal Cart-Style Street Chicken',src:'Kenji López-Alt',page:'',time:'moderate',tags:['daughter-approved'],type:'main',note:'Sloane loves this one',instructions:'Marinate chicken in lemon juice, garlic, olive oil, oregano, turmeric, cumin, salt, and pepper for at least 1 hour. Cook rice in broth with turmeric. Grill or pan-sear chicken over high heat until charred and cooked through, ~5–6 min per side. Rest and slice. Make white sauce: whisk yogurt, mayo, lemon juice, garlic, salt. Serve chicken over rice with white sauce, pita, and tomatoes.',ings:[
     {n:'boneless skinless chicken thighs',a:'2 lbs',c:'protein'},{n:'lemon',a:'1',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'long grain rice',a:'2 cups',c:'pantry'},{n:'chicken broth',a:'2½ cups',c:'pantry'},{n:'Greek yogurt',a:'½ cup',c:'dairy'},{n:'mayonnaise',a:'¼ cup',c:'pantry',p:1},{n:'pita',c:'pantry'},{n:'cherry tomatoes',a:'2 pints',c:'produce'},{n:'dried oregano',a:'1 tsp',c:'pantry',p:1},{n:'turmeric',a:'½ tsp',c:'pantry',p:1},{n:'cumin',a:'1½ tsp',c:'pantry',p:1}]},
-  {id:8,name:'Better Chicken Pot Pie',src:'Smitten Kitchen',page:'',time:'weekend',tags:[],seasons:['fall','winter'],note:'All-day project, worth it',ings:[
+  {id:8,name:'Better Chicken Pot Pie',src:'Smitten Kitchen',page:'',time:'weekend',tags:[],type:'main',seasons:['fall','winter'],note:'All-day project, worth it',ings:[
     {n:'bone-in chicken',c:'protein'},{n:'leeks',c:'produce'},{n:'yellow onion',a:'1 medium',c:'produce'},{n:'dry sherry',c:'pantry'},{n:'chicken broth',a:'2½ cups',c:'pantry'},{n:'carrots',c:'produce'},{n:'frozen peas',c:'frozen'},{n:'sour cream',a:'½ cup',c:'dairy'},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1},{n:'all-purpose flour',a:'2¼ cups',c:'pantry',p:1}]},
-  {id:9,name:'Gingery Ground Beef & Limes',src:'Carla Lalli Music — That Sounds So Good',page:'p.60',time:'quick',tags:['healthy-fats'],ings:[
+  {id:9,name:'Gingery Ground Beef & Limes',src:'Carla Lalli Music — That Sounds So Good',page:'p.60',time:'quick',tags:['healthy-fats'],type:'main',ings:[
     {n:'ground beef',a:'1 lb (80/20)',c:'protein'},{n:'fresh ginger',a:'1 tbsp grated',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'lime',a:'2 (juiced)',c:'produce'},{n:'soy sauce',a:'2 tbsp',c:'pantry',p:1},{n:'fish sauce',c:'pantry'},{n:'fresh cilantro',c:'produce'},{n:'jasmine rice',a:'2 cups',c:'pantry'},{n:'sriracha',c:'pantry',p:1}]},
-  {id:10,name:'Stuffed Bell Pepper Skillet',src:'Two Peas and Their Pod',page:'',time:'quick',tags:['daughter-approved','fiber'],instructions:'Brown ground beef in a large oven-safe skillet over medium-high heat; drain. Add onion and peppers, cook 3–4 min. Add garlic, tomato paste, and Worcestershire; cook 1 min. Stir in tomatoes, rice, and broth. Bring to a boil, reduce heat, cover and simmer 18–20 min until rice is cooked. Top with cheeses and broil 2–3 min until bubbly.',ings:[
+  {id:10,name:'Stuffed Bell Pepper Skillet',src:'Two Peas and Their Pod',page:'',time:'quick',tags:['daughter-approved','fiber'],type:'main',instructions:'Brown ground beef in a large oven-safe skillet over medium-high heat; drain. Add onion and peppers, cook 3–4 min. Add garlic, tomato paste, and Worcestershire; cook 1 min. Stir in tomatoes, rice, and broth. Bring to a boil, reduce heat, cover and simmer 18–20 min until rice is cooked. Top with cheeses and broil 2–3 min until bubbly.',ings:[
     {n:'ground beef',a:'1 lb (80/20)',c:'protein'},{n:'yellow onion',a:'1 medium',c:'produce'},{n:'red bell pepper',a:'1 large',c:'produce'},{n:'yellow bell pepper',a:'1 large',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'fire-roasted diced tomatoes',a:'1 can (14.5 oz)',c:'pantry'},{n:'long grain white rice',a:'1 cup',c:'pantry'},{n:'beef or chicken broth',a:'1½ cups',c:'pantry'},{n:'mozzarella cheese',a:'1 cup shredded',c:'dairy'},{n:'cheddar cheese',a:'½ cup shredded',c:'dairy'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'Worcestershire sauce',a:'1 tbsp',c:'pantry',p:1}]},
-  {id:11,name:'House Pasta',src:"Bri's own",page:'',time:'quick',tags:[],instructions:'Cook pasta. In a large pan, cook garlic in olive oil until fragrant. Add tomato paste and cook 2 min, stirring constantly. Add a splash of pasta water and lemon juice. Toss with pasta. Top with burrata and finish with lemon zest, salt, and pepper.',ings:[
+  {id:11,name:'House Pasta',src:"Bri's own",page:'',time:'quick',tags:[],type:'main',instructions:'Cook pasta. In a large pan, cook garlic in olive oil until fragrant. Add tomato paste and cook 2 min, stirring constantly. Add a splash of pasta water and lemon juice. Toss with pasta. Top with burrata and finish with lemon zest, salt, and pepper.',ings:[
     {n:'pasta',a:'1 lb',c:'pantry'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'lemon',a:'1',c:'produce'},{n:'burrata',a:'8 oz',c:'dairy'},{n:'garlic',a:'4 cloves',c:'produce'}]},
-  {id:12,name:"Flatbread with Sour Cream, Za'atar & Mushrooms",src:"Bri's own",page:'',time:'quick',tags:[],note:"Get frozen flatbread from TJ's",ings:[
+  {id:12,name:"Flatbread with Sour Cream, Za'atar & Mushrooms",src:"Bri's own",page:'',time:'quick',tags:[],type:'main',note:"Get frozen flatbread from TJ's",ings:[
     {n:"frozen flatbread (TJ's)",c:'frozen'},{n:'sour cream',a:'½ cup',c:'dairy'},{n:"za'atar",c:'specialty'},{n:'cremini mushrooms',a:'1 lb',c:'produce'}]},
-  {id:13,name:'Frittata',src:"Bri's own",page:'',time:'quick',tags:['fiber'],instructions:'Preheat oven to 400°F. Cook bacon or sausage in 10-inch oven-safe skillet; remove and set aside. Sauté mushrooms in same pan until golden. Add spinach; cook until wilted. Whisk eggs with salt, pepper, and splash of cream. Pour over vegetables. Crumble goat cheese on top. Cook on stovetop 2 min until edges set, then bake 10–12 min until puffed and set in center.',ings:[
+  {id:13,name:'Frittata',src:"Bri's own",page:'',time:'quick',tags:['fiber'],type:'main',instructions:'Preheat oven to 400°F. Cook bacon or sausage in 10-inch oven-safe skillet; remove and set aside. Sauté mushrooms in same pan until golden. Add spinach; cook until wilted. Whisk eggs with salt, pepper, and splash of cream. Pour over vegetables. Crumble goat cheese on top. Cook on stovetop 2 min until edges set, then bake 10–12 min until puffed and set in center.',ings:[
     {n:'eggs',a:'6 large',c:'dairy'},{n:'cremini mushrooms',a:'1 lb',c:'produce'},{n:'goat cheese',a:'4 oz',c:'dairy'},{n:'baby spinach',a:'5 oz',c:'produce'},{n:'bacon or sausage',a:'4 oz',c:'protein'}]},
-  {id:14,name:'Pan-Fried Salmon + Roasted Veg',src:"Bri's own",page:'',time:'quick',tags:['daughter-approved','healthy-fats'],note:'Sloane eats the salmon. Pair with garlic butter angel hair (NYT p.130) or asparagus.',instructions:'Pat salmon dry, season generously with salt and pepper. Heat oil in skillet over medium-high until shimmering. Place salmon skin-side down; press gently. Cook 4–5 min until skin is crispy. Flip and cook 1–2 min more. Meanwhile, toss asparagus with olive oil, garlic, salt; roast at 425°F 10–12 min. Serve with lemon wedges.',ings:[
+  {id:14,name:'Pan-Fried Salmon + Roasted Veg',src:"Bri's own",page:'',time:'quick',tags:['daughter-approved','healthy-fats'],type:'main',note:'Sloane eats the salmon. Pair with garlic butter angel hair (NYT p.130) or asparagus.',instructions:'Pat salmon dry, season generously with salt and pepper. Heat oil in skillet over medium-high until shimmering. Place salmon skin-side down; press gently. Cook 4–5 min until skin is crispy. Flip and cook 1–2 min more. Meanwhile, toss asparagus with olive oil, garlic, salt; roast at 425°F 10–12 min. Serve with lemon wedges.',ings:[
     {n:'salmon fillets',a:'4 (6 oz each)',c:'protein'},{n:'asparagus or broccolini',a:'1 bunch',c:'produce'},{n:'lemon',a:'1',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'}]},
-  {id:15,name:'Chicken Curry with Chickpeas',src:"Bri's own",page:'',time:'moderate',tags:['daughter-approved','fiber'],instructions:'Sauté shallots in oil until soft. Add spices and cook 1 min. Add chicken and brown. Stir in diced tomatoes and chickpeas. Simmer 20–25 min until chicken is cooked through and sauce thickens. Serve over jasmine rice.',ings:[
+  {id:15,name:'Chicken Curry with Chickpeas',src:"Bri's own",page:'',time:'moderate',tags:['daughter-approved','fiber'],type:'main',instructions:'Sauté shallots in oil until soft. Add spices and cook 1 min. Add chicken and brown. Stir in diced tomatoes and chickpeas. Simmer 20–25 min until chicken is cooked through and sauce thickens. Serve over jasmine rice.',ings:[
     {n:'boneless chicken thighs',a:'1½ lbs',c:'protein'},{n:'canned diced tomatoes',a:'1 can (14 oz)',c:'pantry'},{n:'chickpeas',a:'1 can (15 oz)',c:'pantry'},{n:'shallots',a:'2 large',c:'produce'},{n:'jasmine rice',a:'2 cups',c:'pantry'},{n:'cumin',a:'1½ tsp',c:'pantry',p:1},{n:'coriander',a:'1 tsp',c:'pantry',p:1},{n:'turmeric',a:'½ tsp',c:'pantry',p:1},{n:'garam masala',a:'1 tsp',c:'pantry',p:1}]},
-  {id:16,name:'Viral Baked Feta Pasta',src:"Bri's own",page:'',time:'moderate',tags:[],seasons:['summer'],instructions:'Preheat oven to 400°F. Place feta block in center of 9x13 baking dish. Scatter cherry tomatoes and garlic around it. Drizzle generously with olive oil, season with salt and pepper. Bake 35–40 min until feta is soft and tomatoes have burst. Cook pasta. Mash feta and tomatoes together into a sauce, add splash of pasta water, toss with pasta and fresh basil.',ings:[
+  {id:16,name:'Viral Baked Feta Pasta',src:"Bri's own",page:'',time:'moderate',tags:[],type:'main',seasons:['summer'],instructions:'Preheat oven to 400°F. Place feta block in center of 9x13 baking dish. Scatter cherry tomatoes and garlic around it. Drizzle generously with olive oil, season with salt and pepper. Bake 35–40 min until feta is soft and tomatoes have burst. Cook pasta. Mash feta and tomatoes together into a sauce, add splash of pasta water, toss with pasta and fresh basil.',ings:[
     {n:'block feta',a:'8 oz',c:'dairy'},{n:'cherry tomatoes',a:'2 pints',c:'produce'},{n:'pasta',a:'1 lb',c:'pantry'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'fresh basil',a:'handful',c:'produce'}]},
-  {id:17,name:'Stewed Chicken with Sour Cream Dumplings',src:'Julia Turshen — Simply Julia',page:'p.94',time:'moderate',tags:['daughter-approved'],ings:[
+  {id:17,name:'Stewed Chicken with Sour Cream Dumplings',src:'Julia Turshen — Simply Julia',page:'p.94',time:'moderate',tags:['daughter-approved'],type:'main',ings:[
     {n:'chicken breasts',c:'protein'},{n:'chicken stock',c:'pantry'},{n:'carrots',c:'produce'},{n:'baby spinach',a:'5 oz',c:'produce'},{n:'sour cream',a:'½ cup',c:'dairy'},{n:'fresh chives',a:'2 tbsp chopped',c:'produce'},{n:'all-purpose flour',a:'2¼ cups',c:'pantry',p:1}]},
-  {id:18,name:'Sticky Chicken',src:'Julia Turshen — Simply Julia',page:'p.82',time:'quick',tags:['daughter-approved'],instructions:'Stir together water and cornstarch in a bowl. Add ketchup, honey, soy sauce, chili garlic sauce, and garlic. Reserve the sauce. Heat oil in a large nonstick skillet over high heat. Add half the chicken, season with salt and pepper, and cook stirring until browned all over, about 5 minutes. Transfer to a plate; repeat with remaining chicken. Return all chicken to the skillet with the reserved sauce. Bring to a boil, then simmer on low, stirring, until sauce is thick and coats the chicken, about 5 minutes. Serve immediately.',ings:[
+  {id:18,name:'Sticky Chicken',src:'Julia Turshen — Simply Julia',page:'p.82',time:'quick',tags:['daughter-approved'],type:'main',instructions:'Stir together water and cornstarch in a bowl. Add ketchup, honey, soy sauce, chili garlic sauce, and garlic. Reserve the sauce. Heat oil in a large nonstick skillet over high heat. Add half the chicken, season with salt and pepper, and cook stirring until browned all over, about 5 minutes. Transfer to a plate; repeat with remaining chicken. Return all chicken to the skillet with the reserved sauce. Bring to a boil, then simmer on low, stirring, until sauce is thick and coats the chicken, about 5 minutes. Serve immediately.',ings:[
     {n:'boneless skinless chicken breasts or thighs',a:'1½ lbs, bite-sized pieces',c:'protein'},{n:'canola oil',a:'2 tbsp',c:'pantry',p:1},{n:'water',a:'2 tbsp',c:'pantry',p:1},{n:'cornstarch',a:'1 tsp',c:'pantry',p:1},{n:'ketchup',a:'¼ cup',c:'pantry',p:1},{n:'honey',a:'3 tbsp',c:'pantry',p:1},{n:'soy sauce',a:'3 tbsp',c:'pantry',p:1},{n:'chili garlic sauce (sambal)',a:'1 tbsp',c:'pantry',p:1},{n:'garlic',a:'4 cloves, minced',c:'produce'}]},
-  {id:19,name:'Spinach + Artichoke Dip Chicken Bake',src:'Julia Turshen — Simply Julia',page:'p.81',time:'quick',tags:[],instructions:'Preheat oven to 425°F. Heat olive oil in a large oven-safe skillet over medium-high heat. Cook chicken in two batches, seasoning with salt and pepper, until browned all over, about 5 minutes per batch. Return all chicken to the skillet. Add the garlic, spinach, artichoke hearts, and sour cream and stir well to combine. Sprinkle evenly with Parmesan. Bake until the cheese is browned, about 20 minutes. Serve hot.',ings:[
+  {id:19,name:'Spinach + Artichoke Dip Chicken Bake',src:'Julia Turshen — Simply Julia',page:'p.81',time:'quick',tags:[],type:'main',instructions:'Preheat oven to 425°F. Heat olive oil in a large oven-safe skillet over medium-high heat. Cook chicken in two batches, seasoning with salt and pepper, until browned all over, about 5 minutes per batch. Return all chicken to the skillet. Add the garlic, spinach, artichoke hearts, and sour cream and stir well to combine. Sprinkle evenly with Parmesan. Bake until the cheese is browned, about 20 minutes. Serve hot.',ings:[
     {n:'boneless skinless chicken breasts or thighs',a:'1½ lbs, bite-sized pieces',c:'protein'},{n:'extra-virgin olive oil',a:'3 tbsp',c:'pantry',p:1},{n:'garlic',a:'4 cloves, minced',c:'produce'},{n:'frozen leaf spinach',a:'10 oz (thawed, drained, squeezed dry)',c:'frozen'},{n:'canned or jarred artichoke hearts',a:'14 oz, drained, halved',c:'pantry'},{n:'sour cream',a:'1 cup',c:'dairy'},{n:'Parmesan cheese',a:'½ cup finely grated',c:'dairy'}]},
-  {id:20,name:"My Mother-in-Law's Brunswick Stew",src:'Julia Turshen — Simply Julia',page:'p.114',time:'moderate',tags:['daughter-approved'],seasons:['fall','winter'],note:'Better the next day — make ahead',instructions:'Place chicken bones in a pot with 4 cups water, bring to a boil, reduce to a simmer. In a large Dutch oven over medium-low heat, cook olive oil and bacon until fat is rendered and bacon is crisp, about 4 minutes. Remove bacon; reserve fat. Cook onion in fat over medium heat with 1 tsp salt until softened, about 8 minutes. Add shredded chicken and tomatoes with juice. Ladle simmered stock through a sieve into the pot (discard bones). Bring to a boil, then simmer 10 minutes until tomatoes break down. Season with salt. Add lima beans, corn, and black pepper; simmer 10 more minutes until tender. Stir butter and flour together in a small bowl, then stir into stew. Simmer 20 minutes until thickened. Season to taste. Serve hot with reserved bacon crumbled on top.',ings:[
+  {id:20,name:"My Mother-in-Law's Brunswick Stew",src:'Julia Turshen — Simply Julia',page:'p.114',time:'moderate',tags:['daughter-approved'],type:'main',seasons:['fall','winter'],note:'Better the next day — make ahead',instructions:'Place chicken bones in a pot with 4 cups water, bring to a boil, reduce to a simmer. In a large Dutch oven over medium-low heat, cook olive oil and bacon until fat is rendered and bacon is crisp, about 4 minutes. Remove bacon; reserve fat. Cook onion in fat over medium heat with 1 tsp salt until softened, about 8 minutes. Add shredded chicken and tomatoes with juice. Ladle simmered stock through a sieve into the pot (discard bones). Bring to a boil, then simmer 10 minutes until tomatoes break down. Season with salt. Add lima beans, corn, and black pepper; simmer 10 more minutes until tender. Stir butter and flour together in a small bowl, then stir into stew. Simmer 20 minutes until thickened. Season to taste. Serve hot with reserved bacon crumbled on top.',ings:[
     {n:'rotisserie chicken',a:'1 whole, skin discarded, meat shredded, bones reserved',c:'protein'},{n:'water',a:'4 cups',c:'pantry',p:1},{n:'extra-virgin olive oil',a:'1 tbsp',c:'pantry',p:1},{n:'bacon',a:'¼ lb (4 slices), finely chopped',c:'protein'},{n:'yellow onion',a:'1 large, finely diced',c:'produce'},{n:'canned diced tomatoes',a:'28 oz can with juice',c:'pantry'},{n:'frozen lima beans',a:'10 oz package',c:'frozen'},{n:'fresh or frozen corn kernels',a:'3 ears or 16 oz package',c:'produce'},{n:'unsalted butter',a:'2 tbsp, melted',c:'dairy',p:1},{n:'all-purpose flour',a:'2 tbsp',c:'pantry',p:1}]},
-  {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],seasons:['spring'],ings:[
+  {id:21,name:'Spring Gnocchi with Peas & Asparagus',src:"What's Gaby Cooking",page:'',time:'quick',tags:['vegetarian','fiber'],type:'main',seasons:['spring'],ings:[
     {n:'store-bought gnocchi',a:'1 lb',c:'pantry'},{n:'frozen peas',c:'frozen'},{n:'asparagus',c:'produce'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'lemon',a:'1',c:'produce'},{n:'fresh mint',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:['slow-cooker'],seasons:['fall','winter'],note:'Slow cooker dump-and-forget',instructions:'Place roast in slow cooker. Sprinkle ranch and au jus packets over top. Pour entire jar of pepperoncinis and juice over meat. Place butter on top. Cook on LOW 8–10 hours.',ings:[
+  {id:22,name:'Mississippi Roast',src:'NYT Cooking',page:'',time:'weekend',tags:['slow-cooker'],type:'main',seasons:['fall','winter'],note:'Slow cooker dump-and-forget',instructions:'Place roast in slow cooker. Sprinkle ranch and au jus packets over top. Pour entire jar of pepperoncinis and juice over meat. Place butter on top. Cook on LOW 8–10 hours.',ings:[
     {n:'chuck roast',a:'3–4 lbs',c:'protein'},{n:'ranch seasoning packet',a:'1 oz',c:'specialty'},{n:'au jus mix packet',a:'1 oz',c:'specialty'},{n:'pepperoncini peppers (whole jar)',a:'16 oz jar',c:'pantry'},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],seasons:['fall','winter'],ings:[
+  {id:23,name:'Roasted Squash with Buttered Pine Nuts & Feta',src:'Molly Baz — Cook This Book',page:'p.223',time:'moderate',tags:['vegetarian'],type:'main',seasons:['fall','winter'],ings:[
     {n:'acorn squash',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'pine nuts',c:'specialty'},{n:'feta cheese',c:'dairy'},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:24,name:'Simple Tuna Patties',src:'Bon Appétit',page:'',time:'quick',tags:['daughter-approved'],note:'Sloane may eat these',ings:[
+  {id:24,name:'Simple Tuna Patties',src:'Bon Appétit',page:'',time:'quick',tags:['daughter-approved'],type:'main',note:'Sloane may eat these',ings:[
     {n:'canned tuna in olive oil',c:'pantry'},{n:'eggs',a:'6 large',c:'dairy'},{n:'lemon',a:'1',c:'produce'},{n:'mayonnaise',a:'¼ cup',c:'pantry',p:1},{n:'panko breadcrumbs',c:'pantry',p:1},{n:'Dijon mustard',a:'1 tbsp',c:'pantry',p:1}]},
-  {id:25,name:'Orecchiette with Sausage & Broccoli',src:'Once Upon a Chef',page:'',time:'quick',tags:['daughter-approved'],instructions:'Cook pasta. Meanwhile, brown sausage in large skillet, breaking it up. Add garlic and cook 1 min. Add broccoli and broth; cover and steam 3–4 min until broccoli is tender. Drain pasta, reserving 1 cup pasta water. Toss pasta with sausage mixture, cheese, and butter. Add pasta water as needed to loosen.',ings:[
+  {id:25,name:'Orecchiette with Sausage & Broccoli',src:'Once Upon a Chef',page:'',time:'quick',tags:['daughter-approved'],type:'main',instructions:'Cook pasta. Meanwhile, brown sausage in large skillet, breaking it up. Add garlic and cook 1 min. Add broccoli and broth; cover and steam 3–4 min until broccoli is tender. Drain pasta, reserving 1 cup pasta water. Toss pasta with sausage mixture, cheese, and butter. Add pasta water as needed to loosen.',ings:[
     {n:'Italian sausage (bulk)',a:'1 lb',c:'protein'},{n:'orecchiette pasta',a:'1 lb',c:'pantry'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'chicken broth',a:'2½ cups',c:'pantry'},{n:'broccoli florets',a:'3 cups',c:'produce'},{n:'pecorino Romano or parmesan',a:'½ cup grated',c:'dairy'},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:26,name:'Miso-Honey Sheet Pan Chicken',src:'NYT Easy Weeknight Dinners',page:'p.30',time:'quick',tags:[],instructions:'Whisk together miso, honey, soy sauce, rice vinegar, garlic, ginger, and chile-garlic sauce. Toss chicken in marinade and let sit at least 15 min (or overnight). Spread on sheet pan. Roast at 425°F for 20–25 min until cooked through and caramelized. Broil 2–3 min for extra color.',ings:[
+  {id:26,name:'Miso-Honey Sheet Pan Chicken',src:'NYT Easy Weeknight Dinners',page:'p.30',time:'quick',tags:[],type:'main',instructions:'Whisk together miso, honey, soy sauce, rice vinegar, garlic, ginger, and chile-garlic sauce. Toss chicken in marinade and let sit at least 15 min (or overnight). Spread on sheet pan. Roast at 425°F for 20–25 min until cooked through and caramelized. Broil 2–3 min for extra color.',ings:[
     {n:'boneless skinless chicken thighs',a:'2 lbs',c:'protein'},{n:'white miso',a:'3 tbsp',c:'specialty'},{n:'fresh ginger',a:'1 tbsp grated',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'honey',a:'3 tbsp',c:'pantry',p:1},{n:'soy sauce',a:'2 tbsp',c:'pantry',p:1},{n:'rice vinegar',a:'1 tbsp',c:'pantry',p:1},{n:'chile-garlic sauce',a:'1 tsp',c:'pantry',p:1}]},
-  {id:27,name:'Beans and Greens Alla Vodka',src:'NYT Easy Weeknight Dinners',page:'p.196',time:'quick',tags:['vegetarian','fiber'],instructions:'Sauté onion in oil until soft. Add garlic and tomato paste, cook 2 min. Add vodka and cook until mostly evaporated. Add beans and cream; simmer 5 min. Add spinach and stir until wilted. Finish with parmesan. Serve with crusty bread or over pasta.',ings:[
+  {id:27,name:'Beans and Greens Alla Vodka',src:'NYT Easy Weeknight Dinners',page:'p.196',time:'quick',tags:['vegetarian','fiber'],type:'main',instructions:'Sauté onion in oil until soft. Add garlic and tomato paste, cook 2 min. Add vodka and cook until mostly evaporated. Add beans and cream; simmer 5 min. Add spinach and stir until wilted. Finish with parmesan. Serve with crusty bread or over pasta.',ings:[
     {n:'yellow onion',a:'1 medium',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'white beans (2 cans)',a:'2 cans (15 oz each)',c:'pantry'},{n:'baby spinach',a:'5 oz',c:'produce'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'vodka',a:'¼ cup',c:'pantry',p:1}]},
-  {id:28,name:'Lentils with Wine-Glazed Vegetables',src:'Deborah Madison — Vegetarian Cooking for Everyone',page:'',time:'moderate',tags:['vegetarian','fiber'],seasons:['fall','winter'],note:'Can top with puff pastry for pot pie version',ings:[
+  {id:28,name:'Lentils with Wine-Glazed Vegetables',src:'Deborah Madison — Vegetarian Cooking for Everyone',page:'',time:'moderate',tags:['vegetarian','fiber'],type:'main',seasons:['fall','winter'],note:'Can top with puff pastry for pot pie version',ings:[
     {n:'French green or Beluga lentils',c:'pantry'},{n:'yellow onion',a:'1 medium',c:'produce'},{n:'carrot',c:'produce'},{n:'celery',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'flat-leaf parsley',a:'handful',c:'produce'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'Dijon mustard',a:'1 tbsp',c:'pantry',p:1},{n:'butter',a:'½ stick',c:'dairy',p:1},{n:'puff pastry (optional)',c:'frozen'}]},
-  {id:30,name:'Peanut Chicken Chop',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.55',time:'quick',tags:['fiber','healthy-fats'],note:'Great use of leftover rotisserie chicken',ings:[
+  {id:30,name:'Peanut Chicken Chop',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.55',time:'quick',tags:['fiber','healthy-fats'],type:'main',note:'Great use of leftover rotisserie chicken',ings:[
     {n:'shredded chicken',c:'protein'},{n:'creamy peanut butter',c:'pantry'},{n:'carrots',c:'produce'},{n:'edamame (frozen)',c:'frozen'},{n:'soy sauce',a:'2 tbsp',c:'pantry',p:1},{n:'apple cider vinegar',c:'pantry',p:1},{n:'sriracha',c:'pantry',p:1},{n:'honey',a:'3 tbsp',c:'pantry',p:1}]},
-  {id:31,name:'Enchilada Rice Skillet',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.180',time:'quick',tags:['daughter-approved','fiber'],ings:[
+  {id:31,name:'Enchilada Rice Skillet',src:'Caro Chambers — What to Cook When You Don\'t Feel Like Cooking',page:'p.180',time:'quick',tags:['daughter-approved','fiber'],type:'main',ings:[
     {n:'ground beef',a:'1 lb (80/20)',c:'protein'},{n:'red bell pepper',a:'1 large',c:'produce'},{n:'scallions',c:'produce'},{n:'black beans',c:'pantry'},{n:'enchilada sauce',c:'pantry'},{n:'white rice',c:'pantry'},{n:'shredded cheddar',a:'1½ cups',c:'dairy'},{n:'sour cream',a:'½ cup',c:'dairy'},{n:'beef stock',c:'pantry'}]},
-  {id:32,name:'One-Pan Garlicky Chicken Couscous',src:'Caroline Gelen — Pass the Plate',page:'p.77',time:'quick',tags:['daughter-approved'],ings:[
+  {id:32,name:'One-Pan Garlicky Chicken Couscous',src:'Caroline Gelen — Pass the Plate',page:'p.77',time:'quick',tags:['daughter-approved'],type:'main',ings:[
     {n:'bone-in chicken thighs',c:'protein'},{n:'shallots',a:'2 large',c:'produce'},{n:'pearled couscous',c:'pantry'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'fresh dill',a:'2 tbsp chopped',c:'produce'},{n:'chicken bouillon cube',c:'pantry'},{n:'vinegar',c:'pantry',p:1}]},
-  {id:33,name:'One-Pot Baked Risotto with Tomatoes & Burrata',src:'Caroline Gelen — Pass the Plate',page:'p.150',time:'moderate',tags:['vegetarian'],ings:[
+  {id:33,name:'One-Pot Baked Risotto with Tomatoes & Burrata',src:'Caroline Gelen — Pass the Plate',page:'p.150',time:'moderate',tags:['vegetarian'],type:'main',ings:[
     {n:'arborio rice',c:'pantry'},{n:'shallot',c:'produce'},{n:'dry red wine',c:'pantry'},{n:'whole head of garlic',c:'produce'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'burrata',a:'8 oz',c:'dairy'},{n:'fresh thyme or oregano',c:'produce'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:34,name:'Salmon Kebabs with Nigella',src:'Flavors of the Sun',page:'p.132',time:'moderate',tags:['healthy-fats'],seasons:['summer'],note:"⭐ 'One of my favorite salmon recipes ever' — marinate 2 hrs ahead",instructions:'Put salmon in a resealable bag. Combine parsley, mint, chives, Aleppo pepper, cumin, salt, black pepper, and nigella in a bowl. Add olive oil and stir. Pour over salmon, turn to coat, seal and refrigerate 2 hours. Prepare a grill or preheat broiler. Thread salmon onto metal skewers, alternating with red onion wedges. Grill or broil 2–3 minutes per side for a slightly pink interior. Serve with lemon wedges.',ings:[
+  {id:34,name:'Salmon Kebabs with Nigella',src:'Flavors of the Sun',page:'p.132',time:'moderate',tags:['healthy-fats'],type:'main',seasons:['summer'],note:"⭐ 'One of my favorite salmon recipes ever' — marinate 2 hrs ahead",instructions:'Put salmon in a resealable bag. Combine parsley, mint, chives, Aleppo pepper, cumin, salt, black pepper, and nigella in a bowl. Add olive oil and stir. Pour over salmon, turn to coat, seal and refrigerate 2 hours. Prepare a grill or preheat broiler. Thread salmon onto metal skewers, alternating with red onion wedges. Grill or broil 2–3 minutes per side for a slightly pink interior. Serve with lemon wedges.',ings:[
     {n:'center-cut skinless salmon fillet',a:'2 lbs, cut into 2-inch chunks',c:'protein'},{n:'extra-virgin olive oil',a:'½ cup',c:'pantry',p:1},{n:'fresh parsley',a:'2 tbsp chopped',c:'produce'},{n:'fresh mint',a:'2 tbsp chopped',c:'produce'},{n:'fresh chives',a:'2 tbsp chopped',c:'produce'},{n:'Aleppo pepper',a:'2 tsp',c:'specialty'},{n:'cumin',a:'1 tsp',c:'pantry',p:1},{n:'nigella seeds',a:'½ tsp',c:'specialty'},{n:'red onion',a:'1, cut into wedges',c:'produce'},{n:'lemon',a:'1, cut into wedges',c:'produce'}]},
-  {id:35,name:'Roasted Cauliflower Salad with Lentils & Dates',src:'Flavors of the Sun',page:'p.306',time:'moderate',tags:['vegetarian','fiber','healthy-fats','side'],seasons:['fall'],instructions:'Preheat oven to 425°F. Stir together cumin, cinnamon, ginger, and cayenne. Add ¼ cup olive oil; add cauliflower and toss. Spread on a baking sheet, season with ½ tsp each salt and pepper, and roast 25–30 minutes, turning once or twice, until golden. Whisk lemon juice, tahini, honey, and remaining 1 tbsp oil with 2 tbsp water until smooth. Stir in lentils and white scallion parts; season with remaining ½ tsp each salt and pepper. Arrange greens on a platter. Top with lentil mixture and then cauliflower. Scatter dates, almonds, and scallion greens over all. Garnish with fresh mint.',ings:[
+  {id:35,name:'Roasted Cauliflower Salad with Lentils & Dates',src:'Flavors of the Sun',page:'p.306',time:'moderate',tags:['vegetarian','fiber','healthy-fats','side'],type:'side',seasons:['fall'],instructions:'Preheat oven to 425°F. Stir together cumin, cinnamon, ginger, and cayenne. Add ¼ cup olive oil; add cauliflower and toss. Spread on a baking sheet, season with ½ tsp each salt and pepper, and roast 25–30 minutes, turning once or twice, until golden. Whisk lemon juice, tahini, honey, and remaining 1 tbsp oil with 2 tbsp water until smooth. Stir in lentils and white scallion parts; season with remaining ½ tsp each salt and pepper. Arrange greens on a platter. Top with lentil mixture and then cauliflower. Scatter dates, almonds, and scallion greens over all. Garnish with fresh mint.',ings:[
     {n:'cauliflower',a:'1 head, cut into 1-inch florets',c:'produce'},{n:'extra-virgin olive oil',a:'¼ cup + 1 tbsp',c:'pantry',p:1},{n:'cumin',a:'¼ tsp',c:'pantry',p:1},{n:'cinnamon',a:'¼ tsp',c:'pantry',p:1},{n:'ground ginger',a:'¼ tsp',c:'pantry',p:1},{n:'Aleppo or Urfa pepper',a:'pinch of cayenne or ¼ tsp Urfa',c:'specialty'},{n:'French green lentils',a:'1 cup cooked',c:'pantry'},{n:'fresh lemon juice',a:'3 tbsp',c:'produce'},{n:'tahini',a:'2 tbsp',c:'pantry'},{n:'honey',a:'1 tsp',c:'pantry',p:1},{n:'scallions',a:'½ bunch, whites and greens separated',c:'produce'},{n:'baby spinach or arugula',a:'2 cups loosely packed',c:'produce'},{n:'Medjool dates',a:'10, pitted and chopped',c:'produce'},{n:'roasted unsalted almonds',a:'½ cup, coarsely chopped',c:'specialty'},{n:'fresh mint',a:'for garnish',c:'produce'}]},
-  {id:36,name:'Beef and Lentil Bowl with Tahini Dressing',src:'Flavors of the Sun',page:'p.262',time:'moderate',tags:['fiber','healthy-fats'],note:"Crispy onions are key — don't rush them",instructions:'Marinate beef with 1 tbsp oil, shawarma spices, and red wine at least 4 hours or overnight. Heat remaining oil in a skillet over medium heat. Fry onions, stirring, until browned and crispy, 10–12 minutes. Remove and drain; reserve oil. In a 4-qt pot, heat 2 tbsp of the onion oil over medium-low. Add lentils and rice; stir to coat. Season with salt, pepper, and allspice. Add 8½ cups water, bring to a boil, cover, and simmer 25 minutes until absorbed and tender. Whisk tahini with lemon juice, parsley, and garlic; thin with water as needed. Season with salt. Heat 1 tbsp reserved oil in skillet over medium-high until smoking. Cook beef in two batches until browned, turning once. Serve lentil rice in bowls topped with beef, crispy onions, tahini dressing, cucumbers, pickles, and tomatoes.',ings:[
+  {id:36,name:'Beef and Lentil Bowl with Tahini Dressing',src:'Flavors of the Sun',page:'p.262',time:'moderate',tags:['fiber','healthy-fats'],type:'main',note:"Crispy onions are key — don't rush them",instructions:'Marinate beef with 1 tbsp oil, shawarma spices, and red wine at least 4 hours or overnight. Heat remaining oil in a skillet over medium heat. Fry onions, stirring, until browned and crispy, 10–12 minutes. Remove and drain; reserve oil. In a 4-qt pot, heat 2 tbsp of the onion oil over medium-low. Add lentils and rice; stir to coat. Season with salt, pepper, and allspice. Add 8½ cups water, bring to a boil, cover, and simmer 25 minutes until absorbed and tender. Whisk tahini with lemon juice, parsley, and garlic; thin with water as needed. Season with salt. Heat 1 tbsp reserved oil in skillet over medium-high until smoking. Cook beef in two batches until browned, turning once. Serve lentil rice in bowls topped with beef, crispy onions, tahini dressing, cucumbers, pickles, and tomatoes.',ings:[
     {n:'beef top round',a:'1 lb, cut into thin strips',c:'protein'},{n:'extra-virgin olive oil',a:'½ cup',c:'pantry',p:1},{n:'shawarma spices',a:'1 tbsp',c:'specialty'},{n:'dry red wine',a:'1 tbsp',c:'pantry',p:1},{n:'yellow onion',a:'1 large, thinly sliced',c:'produce'},{n:'French lentils',a:'2 cups',c:'pantry'},{n:'jasmine rice',a:'1 cup',c:'pantry'},{n:'allspice',a:'1 tsp',c:'pantry',p:1},{n:'tahini',a:'½ cup',c:'pantry'},{n:'fresh lemon juice',a:'¼ cup',c:'produce'},{n:'flat-leaf parsley',a:'1 tbsp chopped',c:'produce'},{n:'garlic',a:'1 tsp minced',c:'produce'},{n:'Persian cucumbers',a:'sliced, for serving',c:'produce'},{n:'grape tomatoes',a:'for serving',c:'produce'}]},
-  {id:37,name:'Pasta with Tuna & Mushrooms',src:'Joshua McFadden — Six Seasons of Pasta',page:'p.258',time:'moderate',tags:[],ings:[
+  {id:37,name:'Pasta with Tuna & Mushrooms',src:'Joshua McFadden — Six Seasons of Pasta',page:'p.258',time:'moderate',tags:[],type:'main',ings:[
     {n:'campanelle pasta',c:'pantry'},{n:'canned tuna',c:'pantry'},{n:'cremini mushrooms',a:'1 lb',c:'produce'},{n:'green beans',c:'produce'},{n:'yellow onion',a:'1 medium',c:'produce'},{n:'pancetta',c:'protein'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'pecorino Romano',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'panko breadcrumbs',c:'pantry',p:1}]},
-  {id:38,name:"Not Your Mother's Tuna Casserole",src:'The Modern Proper',page:'p.199',time:'moderate',tags:[],note:'More veg-forward than traditional; lighter pick of the two tuna options',ings:[
+  {id:38,name:"Not Your Mother's Tuna Casserole",src:'The Modern Proper',page:'p.199',time:'moderate',tags:[],type:'main',note:'More veg-forward than traditional; lighter pick of the two tuna options',ings:[
     {n:'canned tuna in olive oil',c:'pantry'},{n:'green cabbage',c:'produce'},{n:'leeks',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'Gruyère cheese',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'panko breadcrumbs',c:'pantry',p:1}]},
-  {id:40,name:'Garlic Butter Angel Hair (salmon side)',src:'NYT Easy Weeknight Dinners',page:'p.130',time:'quick',tags:[],note:'Side dish — serve with pan-fried salmon',ings:[
+  {id:40,name:'Garlic Butter Angel Hair (salmon side)',src:'NYT Easy Weeknight Dinners',page:'p.130',time:'quick',tags:[],type:'main',note:'Side dish — serve with pan-fried salmon',ings:[
     {n:'angel hair pasta',c:'pantry'},{n:'cherry tomatoes',a:'2 pints',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'fresh basil',a:'handful',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1}]},
-  {id:41,name:'Meatloaf',src:'Talking Meals',page:'',time:'moderate',tags:['daughter-approved'],note:'Homemade ketchup is best; be generous with the pepper',ings:[
+  {id:41,name:'Meatloaf',src:'Talking Meals',page:'',time:'moderate',tags:['daughter-approved'],type:'main',note:'Homemade ketchup is best; be generous with the pepper',ings:[
     {n:'ground beef (2 lb)',c:'protein'},{n:'grated parmesan',c:'dairy'},{n:'onion',a:'1 large',c:'produce'},{n:'egg',a:'1 whole + 1 yolk',c:'dairy'},{n:'ketchup',a:'¼ cup',c:'pantry',p:1}]},
-  {id:42,name:'Oklahoma-Style Onion Burgers',src:'J. Kenji López-Alt',page:'',time:'quick',tags:['daughter-approved'],instructions:'Slice onion paper thin on a mandoline. Divide beef into 4 equal balls (4 oz each). Heat cast iron skillet over high heat until smoking. Add beef balls, press flat with spatula into thin patties. Immediately pile onions on top of each patty, season with salt. Cook 2–3 min until edges are crispy. Flip, pressing onions into meat. Add cheese, cover 30 seconds. Serve on toasted buns with mustard and pickles.',ings:[
+  {id:42,name:'Oklahoma-Style Onion Burgers',src:'J. Kenji López-Alt',page:'',time:'quick',tags:['daughter-approved'],type:'main',instructions:'Slice onion paper thin on a mandoline. Divide beef into 4 equal balls (4 oz each). Heat cast iron skillet over high heat until smoking. Add beef balls, press flat with spatula into thin patties. Immediately pile onions on top of each patty, season with salt. Cook 2–3 min until edges are crispy. Flip, pressing onions into meat. Add cheese, cover 30 seconds. Serve on toasted buns with mustard and pickles.',ings:[
     {n:'ground beef',a:'1 lb (80/20)',c:'protein'},{n:'onion',a:'1 large',c:'produce'},{n:'American cheese',a:'4 slices',c:'dairy'},{n:'hamburger buns',a:'4',c:'pantry'},{n:'canola oil',c:'pantry',p:1},{n:'mustard & pickles',c:'pantry',p:1}]},
-  {id:43,name:'Tuna Salad How I Like It',src:'Carla Lalli Music',page:'',time:'quick',tags:[],note:'Lunch; can use banana peppers',ings:[
+  {id:43,name:'Tuna Salad How I Like It',src:'Carla Lalli Music',page:'',time:'quick',tags:[],type:'main',note:'Lunch; can use banana peppers',ings:[
     {n:'canned tuna (2 cans)',c:'pantry'},{n:'shallot',c:'produce'},{n:'lemon',a:'1',c:'produce'},{n:'mayonnaise',a:'¼ cup',c:'pantry',p:1},{n:'prepared horseradish',c:'pantry',p:1},{n:'pepperoncini peppers',c:'pantry'},{n:'hot sauce',c:'pantry',p:1}]},
-  {id:44,name:'Pear & Pecan Salad with Creamy Lemon Dressing',src:'Two Peas & Their Pod',page:'',time:'quick',tags:['side','vegetarian'],ings:[
+  {id:44,name:'Pear & Pecan Salad with Creamy Lemon Dressing',src:'Two Peas & Their Pod',page:'',time:'quick',tags:['side','vegetarian'],type:'side',ings:[
     {n:'romaine lettuce (2 heads)',c:'produce'},{n:'pears (2 large)',c:'produce'},{n:'candied pecans',c:'specialty'},{n:'aged white cheddar',c:'dairy'},{n:'crème fraiche or Greek yogurt',c:'dairy'},{n:'lemon',a:'1',c:'produce'},{n:'honey or maple syrup',c:'pantry',p:1},{n:'fresh chives',a:'2 tbsp chopped',c:'produce'}]},
-  {id:45,name:'Breaded Beans & Sage Cashew Cream',src:'Justine Doiron',page:'',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],ings:[
+  {id:45,name:'Breaded Beans & Sage Cashew Cream',src:'Justine Doiron',page:'',time:'moderate',tags:['vegetarian','fiber','healthy-fats'],type:'main',ings:[
     {n:'raw cashews',c:'specialty'},{n:'butter beans (2 cans)',c:'pantry'},{n:'all-purpose flour',a:'2¼ cups',c:'pantry',p:1},{n:'fresh rosemary',c:'produce'},{n:'lemon',a:'1',c:'produce'},{n:'balsamic glaze',c:'pantry',p:1},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'garlic powder, nutmeg, chili powder, red pepper flakes',c:'pantry',p:1}]},
-  {id:46,name:'Cucumber & Tomato Salad',src:'Jair Trivino',page:'',time:'quick',tags:['side','vegetarian','fiber'],ings:[
+  {id:46,name:'Cucumber & Tomato Salad',src:'Jair Trivino',page:'',time:'quick',tags:['side','vegetarian','fiber'],type:'side',ings:[
     {n:'feta cheese',c:'dairy'},{n:'tomatoes',c:'produce'},{n:'cucumber',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'white vinegar',c:'pantry',p:1}]},
-  {id:47,name:"Molly Baz's Egg Salad Sandwich",src:'Molly Baz',page:'',time:'quick',tags:[],note:'Lunch; can use banana peppers',ings:[
+  {id:47,name:"Molly Baz's Egg Salad Sandwich",src:'Molly Baz',page:'',time:'quick',tags:[],type:'main',note:'Lunch; can use banana peppers',ings:[
     {n:'eggs (4)',c:'dairy'},{n:'mayonnaise',a:'¼ cup',c:'pantry',p:1},{n:'cornichons or gherkins',c:'pantry'},{n:'capers',c:'pantry',p:1},{n:'dijon mustard',c:'pantry',p:1},{n:'whole grain mustard',c:'pantry',p:1},{n:'fresh dill',a:'2 tbsp chopped',c:'produce'},{n:'extra virgin olive oil',c:'pantry',p:1},{n:'lemon',a:'1',c:'produce'},{n:'bread',c:'pantry'}]},
-  {id:48,name:'Tomato Soup',src:'Ree Drummond',page:'',time:'quick',tags:[],note:'Add 1-2 cups arborio rice for tomato rice soup',instructions:'Melt butter in a large pot. Add onion and cook until very soft, ~10 min. Add diced tomatoes, tomato juice, chicken base, and sugar. Simmer 20 min. Blend until smooth with an immersion blender. Stir in cream, basil, and parsley. Season to taste. For tomato rice soup, add 1–2 cups cooked arborio rice before serving.',ings:[
+  {id:48,name:'Tomato Soup',src:'Ree Drummond',page:'',time:'quick',tags:[],type:'main',note:'Add 1-2 cups arborio rice for tomato rice soup',instructions:'Melt butter in a large pot. Add onion and cook until very soft, ~10 min. Add diced tomatoes, tomato juice, chicken base, and sugar. Simmer 20 min. Blend until smooth with an immersion blender. Stir in cream, basil, and parsley. Season to taste. For tomato rice soup, add 1–2 cups cooked arborio rice before serving.',ings:[
     {n:'white or yellow onion',a:'1 large',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1},{n:'diced tomatoes (2 cans)',a:'2 cans (28 oz each)',c:'pantry'},{n:'tomato juice (46 oz bottle)',a:'46 oz',c:'pantry'},{n:'sugar',a:'1–2 tsp',c:'pantry',p:1},{n:'chicken base or bouillon',a:'1 tbsp',c:'pantry'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'fresh basil',a:'handful',c:'produce'},{n:'flat-leaf parsley',a:'handful',c:'produce'},{n:'sherry (optional)',c:'specialty'}]},
-  {id:49,name:'Anchovy Butter Roasted Chicken',src:'Alison Roman',page:'',time:'moderate',tags:[],ings:[
+  {id:49,name:'Anchovy Butter Roasted Chicken',src:'Alison Roman',page:'',time:'moderate',tags:[],type:'main',ings:[
     {n:'whole chicken',c:'protein'},{n:'red onions',c:'produce'},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1},{n:'anchovies',c:'specialty'},{n:'crusty sourdough bread',c:'pantry'}]},
-  {id:50,name:'Creamy Goat Cheese Pasta',src:'Melissa Clark',page:'',time:'quick',tags:['vegetarian'],note:'Can sub crème fraiche for goat cheese; lemon zest would be delicious',instructions:'Cook pasta, reserving 1 cup pasta water. Meanwhile, sauté garlic in olive oil 1 min. Add cherry tomatoes and thyme; cook until tomatoes burst, ~8 min. Add goat cheese and cream; stir until smooth. Toss with pasta and parmesan, adding pasta water to loosen. Finish with fresh basil and red pepper flakes.',ings:[
+  {id:50,name:'Creamy Goat Cheese Pasta',src:'Melissa Clark',page:'',time:'quick',tags:['vegetarian'],type:'main',note:'Can sub crème fraiche for goat cheese; lemon zest would be delicious',instructions:'Cook pasta, reserving 1 cup pasta water. Meanwhile, sauté garlic in olive oil 1 min. Add cherry tomatoes and thyme; cook until tomatoes burst, ~8 min. Add goat cheese and cream; stir until smooth. Toss with pasta and parmesan, adding pasta water to loosen. Finish with fresh basil and red pepper flakes.',ings:[
     {n:'short pasta (1 lb)',a:'1 lb',c:'pantry'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'cherry tomatoes (4 cups)',a:'4 cups (2 pints)',c:'produce'},{n:'fresh thyme',a:'4 sprigs',c:'produce'},{n:'goat cheese (6 oz)',a:'6 oz',c:'dairy'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'fresh basil',a:'handful',c:'produce'},{n:'olive oil',a:'¼–½ cup',c:'pantry',p:1},{n:'red pepper flakes',a:'½ tsp',c:'pantry',p:1}]},
-  {id:52,name:'Spinach Artichoke Dip',src:'Lafayette Brewing Co.',page:'',time:'quick',tags:['side','vegetarian'],instructions:'Preheat oven to 350°F. Beat cream cheese until smooth. Stir in sour cream, parmesan, drained and chopped artichokes, red pepper, and oregano. Transfer to baking dish. Bake 25–30 min until bubbly and golden on top. Serve with chips or crostini.',ings:[
+  {id:52,name:'Spinach Artichoke Dip',src:'Lafayette Brewing Co.',page:'',time:'quick',tags:['side','vegetarian'],type:'side',instructions:'Preheat oven to 350°F. Beat cream cheese until smooth. Stir in sour cream, parmesan, drained and chopped artichokes, red pepper, and oregano. Transfer to baking dish. Bake 25–30 min until bubbly and golden on top. Serve with chips or crostini.',ings:[
     {n:'cream cheese (1 lb)',a:'1 lb',c:'dairy'},{n:'sour cream',a:'½ cup',c:'dairy'},{n:'canned artichokes',a:'2 cans (14 oz each)',c:'pantry'},{n:'parmesan',a:'½ cup grated',c:'dairy'},{n:'crushed red pepper',a:'¼ tsp',c:'pantry',p:1},{n:'oregano',a:'½ tsp',c:'pantry',p:1}]},
-  {id:53,name:'Wine Braised Lentils',src:'Love Soup',page:'',time:'moderate',tags:['vegetarian','fiber'],note:'Serve on buttered toast rubbed with garlic; different from id:28',ings:[
+  {id:53,name:'Wine Braised Lentils',src:'Love Soup',page:'',time:'moderate',tags:['vegetarian','fiber'],type:'main',note:'Serve on buttered toast rubbed with garlic; different from id:28',ings:[
     {n:'french green lentils',c:'pantry'},{n:'onion',a:'1 large',c:'produce'},{n:'celery',c:'produce'},{n:'carrot',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'tomato paste',a:'2 tbsp',c:'pantry',p:1},{n:'dry red wine',c:'pantry',p:1},{n:'Dijon mustard',a:'1 tbsp',c:'pantry',p:1},{n:'butter or walnut oil',c:'dairy',p:1},{n:'bread',c:'pantry'}]},
-  {id:54,name:"Nana's Egg Dumplings",src:'Nana (Grace Szacka)',page:'',time:'quick',tags:['side'],note:'Serve in broth or alongside a main',ings:[
+  {id:54,name:"Nana's Egg Dumplings",src:'Nana (Grace Szacka)',page:'',time:'quick',tags:['side'],type:'side',note:'Serve in broth or alongside a main',ings:[
     {n:'eggs (4)',c:'dairy'},{n:'flour',c:'pantry',p:1}]},
-  {id:55,name:'Bacon Cheddar Quiche',src:'Melissa Clark',page:'',time:'moderate',tags:[],instructions:'Preheat oven to 375°F. Blind bake crust 10 min. Cook and crumble bacon. Whisk eggs, cream, sage, and nutmeg. Sprinkle cheese and bacon into crust. Pour egg mixture over. Bake 35–40 min until center is just set. Rest 10 min before slicing.',ings:[
+  {id:55,name:'Bacon Cheddar Quiche',src:'Melissa Clark',page:'',time:'moderate',tags:[],type:'main',instructions:'Preheat oven to 375°F. Blind bake crust 10 min. Cook and crumble bacon. Whisk eggs, cream, sage, and nutmeg. Sprinkle cheese and bacon into crust. Pour egg mixture over. Bake 35–40 min until center is just set. Rest 10 min before slicing.',ings:[
     {n:'pie crust',a:'1 (9-inch)',c:'pantry'},{n:'eggs (3)',a:'3 large',c:'dairy'},{n:'heavy cream',a:'½ cup',c:'dairy'},{n:'shredded cheddar',a:'1½ cups',c:'dairy'},{n:'bacon (6 strips)',a:'6 strips',c:'protein'},{n:'dried sage',a:'½ tsp',c:'pantry',p:1},{n:'nutmeg',a:'pinch',c:'pantry',p:1}]},
-  {id:57,name:'Homemade BBQ Pizza',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],ings:[
+  {id:57,name:'Homemade BBQ Pizza',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],type:'main',ings:[
     {n:'pizza or flatbread dough',c:'pantry'},{n:'BBQ sauce',c:'pantry',p:1},{n:'mozzarella or cheddar',c:'dairy'},{n:'grated gouda',c:'dairy'},{n:'shredded cabbage',c:'produce'},{n:'chicken or smoked pork',c:'protein'},{n:'pickled shallots or banana peppers',c:'pantry'},{n:'garlic butter',c:'dairy',p:1},{n:'ranch dressing',c:'pantry',p:1}]},
-  {id:58,name:'Olive Pot Chicken Barley Soup',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],note:"Better Than Bouillon is really good in this one",ings:[
+  {id:58,name:'Olive Pot Chicken Barley Soup',src:'Bri Esposito',page:'',time:'moderate',tags:['daughter-approved'],type:'main',note:"Better Than Bouillon is really good in this one",ings:[
     {n:'mirepoix (carrots, celery, onion)',c:'produce'},{n:'fennel bulb',c:'produce'},{n:'butter',a:'½ stick',c:'dairy',p:1},{n:'chicken broth',a:'2½ cups',c:'pantry'},{n:'milk',c:'dairy'},{n:'shredded chicken',c:'protein'},{n:'cooked barley',c:'pantry'}]},
-  {id:59,name:'Chocolate Chip Cookies',src:'Pinch of Yum',page:'',time:'moderate',tags:['dessert'],instructions:'Brown butter in a saucepan until golden and nutty; cool 10 min. Whisk in both sugars until smooth. Add egg, yolk, and vanilla; whisk vigorously. Stir in flour and baking soda until just combined. Fold in chocolate chips. Chill dough 30 min. Scoop onto parchment-lined baking sheets. Bake at 375°F for 10–12 min until edges are golden but centers still look underdone. Cool on pan.',ings:[
+  {id:59,name:'Chocolate Chip Cookies',src:'Pinch of Yum',page:'',time:'moderate',tags:['dessert'],type:'dessert',instructions:'Brown butter in a saucepan until golden and nutty; cool 10 min. Whisk in both sugars until smooth. Add egg, yolk, and vanilla; whisk vigorously. Stir in flour and baking soda until just combined. Fold in chocolate chips. Chill dough 30 min. Scoop onto parchment-lined baking sheets. Bake at 375°F for 10–12 min until edges are golden but centers still look underdone. Cool on pan.',ings:[
     {n:'salted butter',a:'1 cup (2 sticks)',c:'dairy'},{n:'egg',a:'1 whole + 1 yolk',c:'dairy'},{n:'all-purpose flour',a:'2¼ cups',c:'pantry',p:1},{n:'chocolate chips',a:'1½ cups',c:'pantry'},{n:'white sugar',a:'¾ cup',c:'pantry',p:1},{n:'light brown sugar',a:'¾ cup packed',c:'pantry',p:1},{n:'vanilla',a:'2 tsp',c:'pantry',p:1},{n:'baking soda',a:'1 tsp',c:'pantry',p:1}]},
-  {id:60,name:'Black Bean Pico',src:'Cate Linden',page:'',time:'quick',tags:['side','vegetarian','fiber'],instructions:'Drain and rinse beans and corn. Dice tomatoes, onion, jalapeño, and garlic. Combine all ingredients. Squeeze lime juice over, season with Tajin, salt, and hot sauce to taste. Let sit 10 min before serving.',ings:[
+  {id:60,name:'Black Bean Pico',src:'Cate Linden',page:'',time:'quick',tags:['side','vegetarian','fiber'],type:'side',instructions:'Drain and rinse beans and corn. Dice tomatoes, onion, jalapeño, and garlic. Combine all ingredients. Squeeze lime juice over, season with Tajin, salt, and hot sauce to taste. Let sit 10 min before serving.',ings:[
     {n:'canned black beans',a:'1 can (15 oz)',c:'pantry'},{n:'golden corn (canned)',a:'1 can (15 oz)',c:'pantry'},{n:'Roma tomatoes',a:'3',c:'produce'},{n:'red onion',a:'¼ cup diced',c:'produce'},{n:'jalapeno',a:'1',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'lime',a:'2 (juiced)',c:'produce'},{n:'Tajin',a:'1 tsp',c:'specialty'},{n:'hot sauce',c:'pantry',p:1}]},
-  {id:61,name:'Pistou',src:'Zoe Barrie',page:'',time:'quick',tags:['condiment','vegetarian'],instructions:'Toast almonds in a dry pan until fragrant; cool. Blend almonds, basil, garlic, vinegar, and honey in a food processor until roughly chopped. Stream in olive oil while blending until desired consistency. Season with salt and pepper. Use as a sauce, spread, or dip.',ings:[
+  {id:61,name:'Pistou',src:'Zoe Barrie',page:'',time:'quick',tags:['condiment','vegetarian'],type:'condiment',instructions:'Toast almonds in a dry pan until fragrant; cool. Blend almonds, basil, garlic, vinegar, and honey in a food processor until roughly chopped. Stream in olive oil while blending until desired consistency. Season with salt and pepper. Use as a sauce, spread, or dip.',ings:[
     {n:'raw almonds',a:'½ cup',c:'specialty'},{n:'fresh basil',a:'handful',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'red wine vinegar',a:'1 tbsp',c:'pantry',p:1},{n:'honey',a:'3 tbsp',c:'pantry',p:1},{n:'olive oil',a:'¼–½ cup',c:'pantry',p:1}]},
   {id:62,name:'Homemade Ranch Dressing',src:'Cookie + Kate',page:'',time:'quick',tags:['condiment','vegetarian'],note:'Add finely diced jalapeño for spicy ranch',instructions:'Whisk together sour cream, buttermilk, and mayo. Stir in garlic, lemon juice, and herbs. Season with salt and pepper. Refrigerate at least 30 min before serving. For spicy ranch, add 1 finely diced jalapeño.',ings:[
     {n:'sour cream',a:'½ cup',c:'dairy'},{n:'buttermilk',a:'¼ cup',c:'dairy'},{n:'mayonnaise',a:'¼ cup',c:'pantry',p:1},{n:'fresh parsley',a:'2 tbsp chopped',c:'produce'},{n:'fresh dill',a:'2 tbsp chopped',c:'produce'},{n:'fresh chives',a:'2 tbsp chopped',c:'produce'},{n:'garlic',a:'4 cloves',c:'produce'},{n:'lemon',a:'1',c:'produce'}]},
@@ -759,6 +781,29 @@ const R = [
 
 // ---- DATABASE VIEW ----
 let dbVisible = false;
+let dbGrouped = true;
+let collapsedSections = new Set();
+const TYPES = [
+  {id:'main',      label:'Mains',       emoji:'🍽️'},
+  {id:'side',      label:'Sides',       emoji:'🥗'},
+  {id:'dessert',   label:'Desserts',    emoji:'🍰'},
+  {id:'condiment', label:'Condiments',  emoji:'🧄'},
+  {id:'breakfast', label:'Breakfast',   emoji:'🌅'},
+  {id:'lunch',     label:'Lunch',       emoji:'☀️'},
+  {id:'snack',     label:'Snacks',      emoji:'🥪'},
+];
+function toggleDBView(){
+  dbGrouped=!dbGrouped;
+  const btn=document.getElementById('db-view-btn');
+  btn.textContent=dbGrouped?'⊞ Grouped':'☰ All';
+  btn.classList.toggle('active',dbGrouped);
+  renderDB();
+}
+function toggleSection(typeId){
+  if(collapsedSections.has(typeId)) collapsedSections.delete(typeId);
+  else collapsedSections.add(typeId);
+  renderDB();
+}
 
 function goHome(){
   if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
@@ -772,34 +817,13 @@ function toggleDB(){
   if(dbVisible){ renderDB(); document.getElementById('db-search').focus(); }
 }
 
-function renderDB(){
-  const q = document.getElementById('db-search').value.toLowerCase();
-  const tFilter = document.getElementById('db-time').value;
-  const tagFilter = document.getElementById('db-tag').value;
-  const seasonFilter = document.getElementById('db-season').value;
-  const statusFilter = document.getElementById('db-status').value;
-  let recipes = R.filter(r=>{
-    if(q){
-      const inName = r.name.toLowerCase().includes(q);
-      const inSrc  = r.src.toLowerCase().includes(q);
-      const inIngs = r.ings.some(i=>i.n.toLowerCase().includes(q));
-      if(!inName && !inSrc && !inIngs) return false;
-    }
-    if(tFilter && r.time !== tFilter) return false;
-    if(tagFilter && !r.tags.includes(tagFilter)) return false;
-    if(seasonFilter && !r.seasons?.includes(seasonFilter)) return false;
-    if(statusFilter==='fav' && !r.fav) return false;
-    if(statusFilter==='made' && !r.made) return false;
-    if(statusFilter==='new' && r.made) return false;
-    return true;
-  });
-  document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
-  document.getElementById('db-grid').innerHTML = recipes.map(r=>`
+function dbCardHTML(r){
+  return `
     <div class="db-card">
       <div style="display:flex;align-items:flex-start;gap:.4rem">
         <div style="flex:1">
           <div class="db-card-name">${r.name}</div>
-          <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
+          <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:.7rem">↗</a>`:''}</div>
         </div>
         <button class="btn-fav${r.fav?' active':''}" onclick="toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">⭐</button>
       </div>
@@ -817,7 +841,49 @@ function renderDB(){
         <button class="btn-edit" onclick="openEditModal(${r.id})">✏ Edit</button>
         <button class="btn-del" onclick="deleteRecipe(${r.id})">🗑 Delete</button>
       </div>
-    </div>`).join('');
+    </div>`;
+}
+
+function renderDB(){
+  const q = document.getElementById('db-search').value.toLowerCase();
+  const tFilter = document.getElementById('db-time').value;
+  const tagFilter = document.getElementById('db-tag').value;
+  const seasonFilter = document.getElementById('db-season').value;
+  const statusFilter = document.getElementById('db-status').value;
+  const recipes = R.filter(r=>{
+    if(q){
+      const inName = r.name.toLowerCase().includes(q);
+      const inSrc  = r.src.toLowerCase().includes(q);
+      const inIngs = r.ings.some(i=>i.n.toLowerCase().includes(q));
+      if(!inName && !inSrc && !inIngs) return false;
+    }
+    if(tFilter && r.time !== tFilter) return false;
+    if(tagFilter && !r.tags.includes(tagFilter)) return false;
+    if(seasonFilter && !r.seasons?.includes(seasonFilter)) return false;
+    if(statusFilter==='fav' && !r.fav) return false;
+    if(statusFilter==='made' && !r.made) return false;
+    if(statusFilter==='new' && r.made) return false;
+    return true;
+  });
+  document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
+
+  if(dbGrouped){
+    document.getElementById('db-grid').innerHTML = TYPES.map(t=>{
+      const group = recipes.filter(r=>(r.type||'main')===t.id);
+      if(!group.length) return '';
+      const collapsed = collapsedSections.has(t.id);
+      return `<div class="type-section">
+        <div class="type-section-header" onclick="toggleSection('${t.id}')">
+          <span class="type-section-title">${t.emoji} ${t.label}</span>
+          <span class="type-section-count">${group.length} recipe${group.length!==1?'s':''}</span>
+          <span class="type-section-arrow${collapsed?' collapsed':''}">▾</span>
+        </div>
+        ${collapsed?'':` <div class="db-grid" style="margin-bottom:0">${group.map(dbCardHTML).join('')}</div>`}
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('db-grid').innerHTML = recipes.map(dbCardHTML).join('');
+  }
 }
 
 function deleteRecipe(id){
@@ -862,6 +928,7 @@ function openAddModal(){
   document.getElementById('af-src').value='';
   document.getElementById('af-page').value='';
   document.getElementById('af-url').value='';
+  document.getElementById('af-type').value='main';
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
   document.getElementById('af-instructions').value='';
@@ -884,6 +951,7 @@ function openEditModal(id){
   document.getElementById('af-src').value = r.src;
   document.getElementById('af-page').value = r.page||'';
   document.getElementById('af-url').value = r.url||'';
+  document.getElementById('af-type').value = r.type||'main';
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
   document.getElementById('af-instructions').value = r.instructions||'';
@@ -990,6 +1058,7 @@ function saveRecipe(){
     src:document.getElementById('af-src').value.trim()||"Bri's own",
     page:document.getElementById('af-page').value.trim(),
     url:document.getElementById('af-url').value.trim()||undefined,
+    type:document.getElementById('af-type').value||'main',
     time:document.getElementById('af-time').value,
     tags,
     seasons,
@@ -1094,6 +1163,13 @@ async function loadUserData(user){
               if(si&&!ing.a&&si.a){migrated=true;return{...ing,a:si.a};}
               return ing;
             });
+          }
+          if(!r.type){
+            if(r.tags.includes('side')) r.type='side';
+            else if(r.tags.includes('dessert')) r.type='dessert';
+            else if(r.tags.includes('condiment')) r.type='condiment';
+            else r.type='main';
+            migrated=true;
           }
           R.push(r);
         });
