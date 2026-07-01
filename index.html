@@ -130,10 +130,12 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .db-card-src{font-size:.74rem;color:var(--muted)}
 .db-card-ings{font-size:.75rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .db-card-foot{display:flex;gap:.4rem;margin-top:auto;padding-top:.65rem;border-top:1px solid var(--border)}
-.btn-fav{background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:0;opacity:.35;transition:opacity .15s,transform .15s}
+.btn-fav{background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:0;opacity:.4;transition:opacity .15s,transform .15s}
 .btn-fav:hover{opacity:.7}
-.btn-fav.active{opacity:1}
-.btn-fav.active:hover{transform:scale(1.2)}
+.btn-fav.active{opacity:1;filter:drop-shadow(0 0 3px rgba(255,180,0,.5))}
+.btn-fav.active:hover{transform:scale(1.15)}
+.db-card.is-fav{border-left:3px solid #f5c842}
+.db-card.is-fav .db-card-name::before{content:'⭐ ';font-size:.8em}
 .badge-made{font-size:.65rem;font-weight:700;background:#e8f5e9;color:#2e7d32;border-radius:10px;padding:.1rem .45rem;white-space:nowrap}
 .btn-made{background:none;border:1px dashed var(--border);border-radius:10px;font-size:.65rem;font-weight:600;color:var(--muted);padding:.1rem .45rem;cursor:pointer;white-space:nowrap}
 .btn-made:hover{border-color:var(--accent);color:var(--accent)}
@@ -449,6 +451,13 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <div class="form-row">
         <label class="form-label">Instructions <span style="font-weight:400;text-transform:none">(optional)</span></label>
         <textarea class="form-textarea" id="af-instructions" placeholder="Step 1: Preheat oven to 400°F&#10;Step 2: ..." style="min-height:100px"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Status</label>
+        <div style="display:flex;gap:1.5rem;margin-top:.15rem">
+          <label class="tag-chk"><input type="checkbox" id="af-fav"> ⭐ Favorite</label>
+          <label class="tag-chk"><input type="checkbox" id="af-made"> ✓ Made it</label>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -819,13 +828,13 @@ function toggleDB(){
 
 function dbCardHTML(r){
   return `
-    <div class="db-card">
+    <div class="db-card${r.fav?' is-fav':''}">
       <div style="display:flex;align-items:flex-start;gap:.4rem">
         <div style="flex:1">
           <div class="db-card-name">${r.name}</div>
           <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:.7rem">↗</a>`:''}</div>
         </div>
-        <button class="btn-fav${r.fav?' active':''}" onclick="toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">⭐</button>
+        <button class="btn-fav${r.fav?' active':''}" onclick="toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">${r.fav?'⭐':'☆'}</button>
       </div>
       <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
         <div class="card-tags" style="flex:1;margin:.1rem 0">
@@ -916,6 +925,8 @@ function openAddModal(){
   document.getElementById('af-time').value='moderate';
   document.getElementById('af-note').value='';
   document.getElementById('af-instructions').value='';
+  document.getElementById('af-fav').checked=false;
+  document.getElementById('af-made').checked=false;
   document.getElementById('af-err').textContent='';
   document.querySelectorAll('#af-seasons input').forEach(cb=>cb.checked=false);
   rebuildTagUI(); // render checkboxes fresh with no checked state
@@ -939,6 +950,8 @@ function openEditModal(id){
   document.getElementById('af-time').value = r.time;
   document.getElementById('af-note').value = r.note||'';
   document.getElementById('af-instructions').value = r.instructions||'';
+  document.getElementById('af-fav').checked = !!r.fav;
+  document.getElementById('af-made').checked = !!r.made;
   document.getElementById('af-err').textContent = '';
   // seasons
   document.querySelectorAll('#af-seasons input').forEach(cb=>{ cb.checked=(r.seasons||[]).includes(cb.value); });
@@ -982,13 +995,13 @@ function toggleFav(id){
   const r = R.find(x=>x.id===id);
   if(!r) return;
   r.fav = r.fav ? undefined : true;
-  saveData(); renderAll(); if(dbVisible) renderDB();
+  saveToStorage(); renderAll(); if(dbVisible) renderDB();
 }
 function toggleMade(id){
   const r = R.find(x=>x.id===id);
   if(!r) return;
   r.made = r.made ? undefined : true;
-  saveData(); if(dbVisible) renderDB();
+  saveToStorage(); if(dbVisible) renderDB();
 }
 
 async function importFromUrl(){
@@ -1048,6 +1061,8 @@ function saveRecipe(){
     seasons,
     note:document.getElementById('af-note').value.trim(),
     instructions:document.getElementById('af-instructions').value.trim()||undefined,
+    fav:document.getElementById('af-fav').checked||undefined,
+    made:document.getElementById('af-made').checked||undefined,
     ings
   };
   if(editingId !== null){
