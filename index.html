@@ -119,15 +119,11 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .db-search:focus{border-color:var(--accent)}
 .db-filter{padding:.38rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
 .db-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
-.btn-view-toggle{padding:.38rem .7rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;background:var(--bg);color:var(--muted);cursor:pointer;font-weight:600;white-space:nowrap}
-.btn-view-toggle.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.type-section{margin-bottom:1.5rem}
-.type-section-header{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.5rem .1rem;border-bottom:2px solid var(--border);margin-bottom:.85rem;user-select:none}
-.type-section-header:hover{border-color:var(--accent)}
-.type-section-title{font-size:1rem;font-weight:700;flex:1}
-.type-section-count{font-size:.78rem;color:var(--muted);font-weight:400}
-.type-section-arrow{font-size:.8rem;color:var(--muted);transition:transform .2s}
-.type-section-arrow.collapsed{transform:rotate(-90deg)}
+/* Recipe box tab strip */
+.type-tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem}
+.type-tab{padding:.42rem .9rem;border:1px solid transparent;border-bottom:none;border-radius:7px 7px 0 0;font-size:.8rem;font-weight:500;cursor:pointer;background:#f0ece4;color:var(--muted);margin-bottom:-2px;transition:background .12s,color .12s;white-space:nowrap;font-family:inherit}
+.type-tab:hover{background:#e8e3d8;color:var(--text)}
+.type-tab.active{background:var(--bg);color:var(--text);font-weight:700;border-color:var(--border);border-bottom-color:var(--bg)}
 .db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
 .db-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.45rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .db-card-name{font-size:.9rem;font-weight:700;line-height:1.3}
@@ -303,8 +299,17 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 
   <!-- Database view -->
   <div id="db-section" class="hidden">
+    <div class="type-tabs" id="type-tabs">
+      <button class="type-tab active" onclick="setTypeTab('all')">All</button>
+      <button class="type-tab" onclick="setTypeTab('main')">🍽️ Mains</button>
+      <button class="type-tab" onclick="setTypeTab('side')">🥗 Sides</button>
+      <button class="type-tab" onclick="setTypeTab('dessert')">🍰 Desserts</button>
+      <button class="type-tab" onclick="setTypeTab('condiment')">🧄 Condiments</button>
+      <button class="type-tab" onclick="setTypeTab('breakfast')">🌅 Breakfast</button>
+      <button class="type-tab" onclick="setTypeTab('lunch')">☀️ Lunch</button>
+      <button class="type-tab" onclick="setTypeTab('snack')">🥪 Snacks</button>
+    </div>
     <div class="db-bar">
-      <button class="btn-view-toggle active" id="db-view-btn" onclick="toggleDBView()" title="Switch view">⊞ Grouped</button>
       <input class="db-search" id="db-search" type="text" placeholder="Search by name, cookbook, or ingredient…" oninput="renderDB()">
       <select class="db-filter" id="db-time" onchange="renderDB()">
         <option value="">All times</option>
@@ -781,8 +786,7 @@ const R = [
 
 // ---- DATABASE VIEW ----
 let dbVisible = false;
-let dbGrouped = true;
-let collapsedSections = new Set();
+let dbActiveType = 'all';
 const TYPES = [
   {id:'main',      label:'Mains',       emoji:'🍽️'},
   {id:'side',      label:'Sides',       emoji:'🥗'},
@@ -792,16 +796,12 @@ const TYPES = [
   {id:'lunch',     label:'Lunch',       emoji:'☀️'},
   {id:'snack',     label:'Snacks',      emoji:'🥪'},
 ];
-function toggleDBView(){
-  dbGrouped=!dbGrouped;
-  const btn=document.getElementById('db-view-btn');
-  btn.textContent=dbGrouped?'⊞ Grouped':'☰ All';
-  btn.classList.toggle('active',dbGrouped);
-  renderDB();
-}
-function toggleSection(typeId){
-  if(collapsedSections.has(typeId)) collapsedSections.delete(typeId);
-  else collapsedSections.add(typeId);
+function setTypeTab(type){
+  dbActiveType = type;
+  document.querySelectorAll('.type-tab').forEach(btn=>{
+    const t = btn.getAttribute('onclick').match(/setTypeTab\('(\w+)'\)/)?.[1];
+    btn.classList.toggle('active', t===type);
+  });
   renderDB();
 }
 
@@ -865,25 +865,9 @@ function renderDB(){
     if(statusFilter==='new' && r.made) return false;
     return true;
   });
-  document.getElementById('db-count').textContent = `${recipes.length} recipe${recipes.length!==1?'s':''}`;
-
-  if(dbGrouped){
-    document.getElementById('db-grid').innerHTML = TYPES.map(t=>{
-      const group = recipes.filter(r=>(r.type||'main')===t.id);
-      if(!group.length) return '';
-      const collapsed = collapsedSections.has(t.id);
-      return `<div class="type-section">
-        <div class="type-section-header" onclick="toggleSection('${t.id}')">
-          <span class="type-section-title">${t.emoji} ${t.label}</span>
-          <span class="type-section-count">${group.length} recipe${group.length!==1?'s':''}</span>
-          <span class="type-section-arrow${collapsed?' collapsed':''}">▾</span>
-        </div>
-        ${collapsed?'':` <div class="db-grid" style="margin-bottom:0">${group.map(dbCardHTML).join('')}</div>`}
-      </div>`;
-    }).join('');
-  } else {
-    document.getElementById('db-grid').innerHTML = recipes.map(dbCardHTML).join('');
-  }
+  const filtered = dbActiveType==='all' ? recipes : recipes.filter(r=>(r.type||'main')===dbActiveType);
+  document.getElementById('db-count').textContent = `${filtered.length} recipe${filtered.length!==1?'s':''}`;
+  document.getElementById('db-grid').innerHTML = filtered.map(dbCardHTML).join('');
 }
 
 function deleteRecipe(id){
