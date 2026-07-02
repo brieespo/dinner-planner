@@ -126,6 +126,17 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .tag-chk input{display:none}
 .modal-foot{padding:.85rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.6rem;flex-shrink:0;background:#fff}
 .btn-sm{padding:.38rem .9rem;font-size:.82rem}
+/* Community */
+.community-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
+.community-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.45rem;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:border-color .15s}
+.community-card:hover{border-color:var(--accent)}
+.community-attribution{font-size:.74rem;color:var(--accent);font-weight:700;margin-top:.05rem}
+.btn-save-collect{background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:.72rem;font-weight:700;padding:.28rem .65rem;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn-save-collect:hover{opacity:.85}
+.badge-yours{font-size:.65rem;font-weight:700;background:#e8f0fe;color:#3b5bdb;border-radius:10px;padding:.12rem .5rem;white-space:nowrap;flex-shrink:0}
+.badge-saved{font-size:.65rem;font-weight:700;background:#e8f5e9;color:#2e7d32;border-radius:10px;padding:.12rem .5rem;white-space:nowrap;flex-shrink:0}
+/* Display name modal */
+.displayname-modal{background:#fff;border-radius:12px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 /* Database view */
 .db-bar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.1rem}
 .db-search{flex:1;min-width:160px;padding:.4rem .7rem;border:1px solid var(--border);border-radius:6px;font-size:.84rem;outline:none;font-family:inherit}
@@ -286,6 +297,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <div style="display:flex;gap:.6rem;align-items:center">
       <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
       <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
+      <button class="btn btn-outline" id="community-btn" onclick="toggleCommunity()">🌍 Community</button>
       <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
       <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
       <div class="more-menu" id="more-menu">
@@ -296,6 +308,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
           <div class="more-menu-divider"></div>
+          <button class="more-menu-item" onclick="closeMoreMenu();openDisplayNameModal()">👤 Set Display Name</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();doSignOut()" style="color:#c0392b">🚪 Sign Out</button>
@@ -322,6 +335,18 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <button class="sbt" id="sbt-winter" onclick="setSeason('winter')">❄️ Winter</button>
     </div>
     <button class="btn btn-accent" onclick="handleSuggest()">✨ Suggest a week</button>
+  </div>
+
+  <!-- Community Section -->
+  <div id="community-section" class="hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+      <div>
+        <div class="section-title" style="margin-bottom:.1rem">🌍 Community Recipes</div>
+        <div style="font-size:.8rem;color:var(--muted)">Recipes shared by all users — reshuffled each visit</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="renderCommunity()">↺ Shuffle Again</button>
+    </div>
+    <div class="community-grid" id="community-grid"></div>
   </div>
 
   <!-- Database view -->
@@ -597,6 +622,24 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
   </div>
 </div>
 
+<!-- Display Name Modal -->
+<div class="modal-bg" id="displayname-modal" onclick="if(event.target===this)closeDisplayNameModal()">
+  <div class="displayname-modal">
+    <div class="modal-head">
+      <span class="modal-title">👤 Set Display Name</span>
+      <button class="btn-close" onclick="closeDisplayNameModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.85rem">This is the name other users will see when your recipes appear in Community.</p>
+      <input class="form-input" id="displayname-input" type="text" placeholder="e.g. Bri" maxlength="30">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeDisplayNameModal()">Cancel</button>
+      <button class="btn btn-accent btn-sm" onclick="saveDisplayName()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Recipe Detail Modal -->
 <div class="rd-modal-bg" id="rd-modal" onclick="if(event.target===this)closeRecipeDetail()">
   <div class="rd-modal">
@@ -607,6 +650,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       </div>
       <button class="modal-x" onclick="closeRecipeDetail()" style="flex-shrink:0">✕</button>
     </div>
+    <div id="rd-attribution" style="display:none;font-size:.74rem;color:var(--accent);font-weight:700;margin-bottom:.3rem"></div>
     <div id="rd-tags" style="margin-bottom:.4rem"></div>
     <div id="rd-note" style="font-size:.82rem;color:var(--muted);font-style:italic;margin-bottom:.4rem"></div>
     <div class="rd-section">Ingredients</div>
@@ -891,10 +935,12 @@ function setTypeTab(type){
 
 function goHome(){
   if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function toggleDB(){
+  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
   dbVisible = !dbVisible;
   document.getElementById('db-section').classList.toggle('hidden', !dbVisible);
   document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : '📖 All Recipes';
@@ -960,6 +1006,7 @@ function deleteRecipe(id){
   if(!confirm(`Delete "${r.name}"? This can't be undone.`)) return;
   const idx = R.findIndex(x=>x.id===id);
   R.splice(idx,1);
+  if(!r.saved_from) _deleteFromPublic(id);
   saveToStorage();
   // remove from plan if present
   plan = plan.filter(p=>p.r.id!==id);
@@ -1042,9 +1089,12 @@ function openEditModal(id){
 function closeAddModal(){document.getElementById('add-modal').classList.remove('open');}
 function bgAddClick(e){if(e.target===document.getElementById('add-modal'))closeAddModal();}
 
-function openRecipeDetail(id){
-  const r = R.find(x=>x.id===id);
+function openRecipeDetail(idOrRecipe){
+  const r = typeof idOrRecipe==='number' ? R.find(x=>x.id===idOrRecipe) : idOrRecipe;
   if(!r) return;
+  const attrEl=document.getElementById('rd-attribution');
+  if(r._community_handle){ attrEl.textContent='From '+r._community_handle; attrEl.style.display=''; }
+  else { attrEl.style.display='none'; }
   document.getElementById('rd-name').textContent = r.name;
   const srcText = r.src + (r.page ? ' · ' + r.page : '');
   document.getElementById('rd-source').innerHTML = r.url
@@ -1216,7 +1266,18 @@ let _saveTimer = null;
 let _currentUser = null;
 async function _doSave(){
   if(!_currentUser) return;
-  try{ await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:DAY_RULES,updated_at:new Date().toISOString()},{onConflict:'user_id'}); }catch(e){ console.error('save error',e); }
+  try{
+    await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:DAY_RULES,display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    // Sync originals to community (exclude copies saved from other users)
+    const handle=_displayName||_currentUser.email.split('@')[0];
+    const originals=R.filter(r=>!r.saved_from);
+    if(originals.length){
+      await sb.from('public_recipes').upsert(
+        originals.map(r=>({user_id:_currentUser.id,recipe_id:r.id,recipe:r,user_handle:handle,updated_at:new Date().toISOString()})),
+        {onConflict:'user_id,recipe_id'}
+      );
+    }
+  }catch(e){ console.error('save error',e); }
 }
 function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSave,600); }
 
@@ -1248,8 +1309,9 @@ async function loadUserData(user){
           R.push(r);
         });
         nextId=Math.max(...R.map(r=>r.id),0)+1;
-        if(migrated) saveData();
+        if(migrated) saveToStorage();
       }
+      if(data.display_name) _displayName=data.display_name;
       if(data.tags?.length) TAGS=data.tags;
       if(data.rules) DAY_RULES=data.rules;
       if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
@@ -1274,6 +1336,95 @@ sb.auth.onAuthStateChange(async(event,session)=>{
   if(session && event==='SIGNED_IN') await handleAuthSession(session);
   if(!session){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
 });
+
+// ---- COMMUNITY ----
+let communityVisible = false;
+let _displayName = '';
+let _communityRows = {};
+
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function toggleCommunity(){
+  if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
+  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  communityVisible = !communityVisible;
+  document.getElementById('community-section').classList.toggle('hidden',!communityVisible);
+  document.getElementById('community-btn').textContent = communityVisible ? '✕ Close' : '🌍 Community';
+  if(communityVisible){ renderCommunity(); window.scrollTo({top:0,behavior:'smooth'}); }
+}
+
+async function renderCommunity(){
+  const grid=document.getElementById('community-grid');
+  grid.innerHTML='<div style="color:var(--muted);font-size:.9rem;padding:2rem;text-align:center">Loading community recipes…</div>';
+  try{
+    const {data,error}=await sb.from('public_recipes').select('*');
+    if(error) throw error;
+    _communityRows={};
+    (data||[]).forEach(row=>{ _communityRows[row.user_id+'_'+row.recipe_id]=row; });
+    const shuffled=shuffle(data||[]);
+    grid.innerHTML=shuffled.length
+      ? shuffled.map(communityCardHTML).join('')
+      : '<div style="color:var(--muted);font-size:.9rem;padding:2rem;text-align:center">No community recipes yet!</div>';
+  }catch(e){
+    grid.innerHTML='<div style="color:#c0392b;font-size:.9rem;padding:1rem">Could not load recipes. Please try again.</div>';
+    console.error(e);
+  }
+}
+
+function communityCardHTML(row){
+  const r=row.recipe;
+  const isOwn=_currentUser&&row.user_id===_currentUser.id;
+  const alreadySaved=R.some(x=>x.saved_from?.user_id===row.user_id&&x.saved_from?.original_id===r.id);
+  const key=row.user_id+'_'+row.recipe_id;
+  return `<div class="community-card" onclick="openCommunityDetail('${key}')">
+    <div style="display:flex;align-items:flex-start;gap:.5rem">
+      <div style="flex:1;min-width:0">
+        <div class="db-card-name">${r.name}</div>
+        <div class="community-attribution">From ${row.user_handle}</div>
+        <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}</div>
+      </div>
+      ${isOwn?`<span class="badge-yours">Your recipe</span>`:alreadySaved?`<span class="badge-saved">✓ Saved</span>`:`<button class="btn-save-collect" onclick="event.stopPropagation();saveToCollection('${key}')">+ Save</button>`}
+    </div>
+    <div class="card-tags" style="margin:.1rem 0">${timeTag(r.time,r.tags)}${renderTagChips(r.tags)}</div>
+    ${r.seasons?.length?`<div style="margin:.1rem 0">${seasonBadges(r.seasons)}</div>`:''}
+    <div class="db-card-ings">${r.ings.map(i=>i.n).join(', ')}</div>
+  </div>`;
+}
+
+function openCommunityDetail(key){
+  const row=_communityRows[key];
+  if(!row) return;
+  openRecipeDetail({...row.recipe,_community_handle:row.user_handle});
+}
+
+function saveToCollection(key){
+  const row=_communityRows[key];
+  if(!row||!_currentUser) return;
+  const r=row.recipe;
+  R.push({...r,id:nextId++,saved_from:{user_id:row.user_id,handle:row.user_handle,original_id:r.id}});
+  saveToStorage();
+  renderCommunity();
+}
+
+async function _deleteFromPublic(recipeId){
+  if(!_currentUser) return;
+  try{ await sb.from('public_recipes').delete().eq('user_id',_currentUser.id).eq('recipe_id',recipeId); }catch(e){ console.error(e); }
+}
+
+// ---- DISPLAY NAME ----
+function openDisplayNameModal(){
+  document.getElementById('displayname-input').value=_displayName;
+  document.getElementById('displayname-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('displayname-input').focus(),80);
+}
+function closeDisplayNameModal(){ document.getElementById('displayname-modal').classList.remove('open'); }
+function saveDisplayName(){
+  const name=document.getElementById('displayname-input').value.trim();
+  if(!name){ document.getElementById('displayname-input').focus(); return; }
+  _displayName=name;
+  saveToStorage();
+  closeDisplayNameModal();
+}
 
 // ---- MORE MENU ----
 function toggleMoreMenu(){
