@@ -1324,6 +1324,13 @@ async function loadUserData(user){
           }
           R.push(r);
         });
+        // Add any new seed recipes not yet in user's account
+        SEED_RECIPES.forEach(seed=>{
+          if(!R.find(r=>r.id===seed.id)){
+            R.push({...seed});
+            migrated=true;
+          }
+        });
         nextId=Math.max(...R.map(r=>r.id),0)+1;
         if(migrated) saveToStorage();
       }
