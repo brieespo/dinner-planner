@@ -229,6 +229,48 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
 .tm-ep-btn{background:none;border:1.5px solid transparent;border-radius:6px;font-size:1.15rem;padding:.2rem .3rem;cursor:pointer;transition:all .1s;line-height:1}
 .tm-ep-btn:hover{border-color:var(--accent);background:var(--accent-light)}
 .tm-ep-btn.selected{border-color:var(--accent);background:var(--accent-light)}
+/* Saved Menus */
+.sm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.sm-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.25rem}
+.sm-tab{padding:.55rem 1.2rem;border:1px solid transparent;border-bottom:none;border-radius:7px 7px 0 0;font-size:.88rem;font-weight:700;cursor:pointer;background:#f0ece4;color:var(--muted);margin-bottom:-2px;transition:background .12s,color .12s;white-space:nowrap;font-family:inherit}
+.sm-tab:hover{background:#e8e3d8;color:var(--text)}
+.sm-tab.active{background:var(--bg);color:var(--text);border-color:var(--border);border-bottom-color:var(--bg)}
+.sm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.875rem}
+.sm-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.1rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:border-color .15s,box-shadow .15s;position:relative}
+.sm-card:hover{border-color:var(--accent);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.sm-card-name{font-size:.95rem;font-weight:700;line-height:1.3;padding-right:1.8rem}
+.sm-card-meta{font-size:.73rem;color:var(--muted)}
+.sm-card-preview span{display:block;font-size:.78rem;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.sm-card-preview span strong{color:var(--text);font-weight:600}
+.sm-del{position:absolute;top:.65rem;right:.65rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:.15rem .3rem;border-radius:4px;opacity:0;transition:opacity .12s}
+.sm-card:hover .sm-del{opacity:1}
+.sm-del:hover{color:#c0392b;background:#fde8e4}
+.sm-empty{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem;line-height:1.8}
+/* Save-week modal */
+.save-week-modal{background:#fff;border-radius:12px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+/* Menu detail modal */
+.menu-detail-modal{background:#fff;border-radius:12px;width:100%;max-width:620px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.md-day-row{display:flex;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.88rem;align-items:flex-start}
+.md-day-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:72px;padding-top:.12rem;flex-shrink:0}
+.md-day-name{font-weight:600;line-height:1.35}
+.md-day-extras{font-size:.76rem;color:var(--muted);margin-top:.15rem}
+.md-item-row{display:flex;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.88rem;align-items:center}
+.md-item-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:72px;flex-shrink:0}
+.md-item-name{font-weight:600;flex:1}
+/* Event builder modal */
+.event-builder-modal{background:#fff;border-radius:12px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.eb-items{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem;max-height:200px;overflow-y:auto}
+.eb-item{display:flex;gap:.5rem;align-items:center;padding:.45rem .6rem;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+.eb-item-label{font-size:.74rem;color:var(--accent);font-weight:600;min-width:60px}
+.eb-item-name{flex:1;font-size:.86rem;font-weight:600}
+.eb-item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:.1rem .25rem;border-radius:3px;flex-shrink:0}
+.eb-item-del:hover{color:#c0392b;background:#fde8e4}
+.eb-add-section{border-top:1px solid var(--border);padding-top:.75rem;margin-top:.25rem}
+.eb-recipe-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.4rem;max-height:170px;overflow-y:auto;margin:.5rem 0}
+.eb-r-opt{border:1.5px solid var(--border);border-radius:7px;padding:.5rem .6rem;cursor:pointer;transition:all .12s}
+.eb-r-opt:hover{border-color:var(--accent);background:var(--accent-light)}
+.eb-r-opt-name{font-size:.79rem;font-weight:600;line-height:1.25}
+.eb-r-opt-src{font-size:.66rem;color:var(--muted)}
 @media print{
   header{display:none}
   .setup,.btn-swap,.btn-extra,.btn-extra-rm,.modal-bg{display:none!important}
@@ -298,6 +340,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
       <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
       <button class="btn btn-outline" id="community-btn" onclick="toggleCommunity()">🌍 Community</button>
+      <button class="btn btn-outline" id="sm-btn" onclick="toggleSavedMenus()">📋 Saved Menus</button>
       <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
       <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
       <div class="more-menu" id="more-menu">
@@ -350,6 +393,19 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <div class="community-grid" id="community-grid"></div>
   </div>
 
+  <!-- Saved Menus section -->
+  <div id="sm-section" class="hidden">
+    <div class="sm-header">
+      <div class="section-title" style="margin-bottom:0">📋 Saved Menus</div>
+      <button class="btn btn-accent btn-sm" id="sm-new-btn" onclick="openEventBuilder()" style="display:none">+ New Event Menu</button>
+    </div>
+    <div class="sm-tabs">
+      <button class="sm-tab active" id="sm-tab-weekly" onclick="setSMTab('weekly')">📅 Weekly Menus</button>
+      <button class="sm-tab" id="sm-tab-event" onclick="setSMTab('event')">🎉 Event Menus</button>
+    </div>
+    <div class="sm-grid" id="sm-grid"></div>
+  </div>
+
   <!-- Database view -->
   <div id="db-section" class="hidden">
     <div class="db-bar">
@@ -396,6 +452,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
         <button class="btn-ghost" id="breakfast-toggle" onclick="toggleBreakfast()">🌅 Add Breakfast</button>
         <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
         <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+        <button class="btn-ghost" id="save-week-btn" onclick="saveCurrentWeek()">💾 Save This Week</button>
       </div>
     </div>
     <div id="extras-bar" class="hidden extras-bar">
@@ -637,6 +694,83 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" onclick="closeDisplayNameModal()">Cancel</button>
       <button class="btn btn-accent btn-sm" onclick="saveDisplayName()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save Week Modal -->
+<div class="modal-bg" id="save-week-modal-bg" onclick="if(event.target===this)closeSaveWeekModal()">
+  <div class="save-week-modal">
+    <div class="modal-head" style="justify-content:space-between">
+      <strong>💾 Save This Week</strong>
+      <button class="modal-x" onclick="closeSaveWeekModal()">✕</button>
+    </div>
+    <div style="padding:1.25rem">
+      <div class="form-row">
+        <label class="form-label">Menu Name</label>
+        <input class="form-input" id="save-week-name" type="text" placeholder="e.g. July 4th Week" onkeydown="if(event.key==='Enter')confirmSaveWeek()">
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:.6rem;margin-top:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="closeSaveWeekModal()">Cancel</button>
+        <button class="btn btn-accent btn-sm" onclick="confirmSaveWeek()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Detail Modal -->
+<div class="modal-bg" id="menu-detail-bg" onclick="if(event.target===this)closeMenuDetail()">
+  <div class="menu-detail-modal">
+    <div class="modal-head" style="justify-content:space-between;gap:.75rem">
+      <strong id="md-title" style="font-size:1rem"></strong>
+      <div style="display:flex;gap:.75rem;align-items:center">
+        <span id="md-date" style="font-size:.75rem;color:var(--muted)"></span>
+        <button class="modal-x" onclick="closeMenuDetail()">✕</button>
+      </div>
+    </div>
+    <div id="md-body" style="overflow-y:auto;padding:1rem 1.25rem;flex:1"></div>
+    <div class="modal-foot">
+      <button class="btn btn-del btn-sm" onclick="deleteMenuFromDetail()">🗑 Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-ghost btn-sm" id="md-edit-btn" onclick="editMenuFromDetail()" style="display:none">✏ Edit</button>
+      <button class="btn btn-accent btn-sm" id="md-load-btn" onclick="loadMenuFromDetail()" style="display:none">📅 Load into Planner</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Builder Modal -->
+<div class="modal-bg" id="event-builder-bg" onclick="if(event.target===this)closeEventBuilder()">
+  <div class="event-builder-modal">
+    <div class="modal-head" style="justify-content:space-between">
+      <strong id="eb-title">🎉 New Event Menu</strong>
+      <button class="modal-x" onclick="closeEventBuilder()">✕</button>
+    </div>
+    <div style="overflow-y:auto;padding:1.1rem 1.25rem;flex:1">
+      <div class="form-row">
+        <label class="form-label">Event Name</label>
+        <input class="form-input" id="eb-name" type="text" placeholder="e.g. Summer BBQ, Birthday Dinner…">
+      </div>
+      <div class="form-label" style="margin-bottom:.5rem">Recipes in this menu</div>
+      <div class="eb-items" id="eb-items"></div>
+      <div class="eb-add-section">
+        <div style="font-size:.79rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Add from your recipes</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap">
+          <input class="form-input" id="eb-search" type="text" placeholder="Search recipes…" oninput="renderEBPicker()" style="flex:1;min-width:140px">
+          <input class="form-input" id="eb-label" type="text" placeholder="Label (Starter, Main, Side…)" style="flex:1;min-width:130px">
+        </div>
+        <div class="eb-recipe-picker" id="eb-recipe-picker"></div>
+        <div style="border-top:1px dashed var(--border);padding-top:.65rem;margin-top:.5rem">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem">Or add a custom dish not in your database:</div>
+          <div style="display:flex;gap:.5rem">
+            <input class="form-input" id="eb-custom" type="text" placeholder="Custom dish name…" style="flex:1" onkeydown="if(event.key==='Enter')addEBCustom()">
+            <button class="btn btn-ghost btn-sm" onclick="addEBCustom()">+ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeEventBuilder()">Cancel</button>
+      <button class="btn btn-accent btn-sm" onclick="saveEventMenu()">Save Event Menu</button>
     </div>
   </div>
 </div>
@@ -955,11 +1089,13 @@ function setTypeTab(type){
 function goHome(){
   if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
   if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
+  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function toggleDB(){
   if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
+  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
   dbVisible = !dbVisible;
   document.getElementById('db-section').classList.toggle('hidden', !dbVisible);
   document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : '📖 All Recipes';
@@ -1286,7 +1422,7 @@ let _currentUser = null;
 async function _doSave(){
   if(!_currentUser) return;
   try{
-    await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:DAY_RULES,display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:{...DAY_RULES,_savedMenus:SAVED_MENUS},display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
     // Sync originals to community (exclude copies saved from other users)
     const handle=_displayName||_currentUser.email.split('@')[0];
     const originals=R.filter(r=>!r.saved_from);
@@ -1359,7 +1495,7 @@ async function loadUserData(user){
       }
       if(data.display_name) _displayName=data.display_name;
       if(data.tags?.length) TAGS=data.tags;
-      if(data.rules) DAY_RULES=data.rules;
+      if(data.rules){ const {_savedMenus,...dayRules}=data.rules; SAVED_MENUS=_savedMenus||[]; DAY_RULES=dayRules; }
       if(!data.recipes?.length) document.getElementById('starter-banner').classList.remove('hidden');
     } else {
       R.length=0; nextId=1;
@@ -1393,6 +1529,7 @@ function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=M
 function toggleCommunity(){
   if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
   if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
   communityVisible = !communityVisible;
   document.getElementById('community-section').classList.toggle('hidden',!communityVisible);
   document.getElementById('community-btn').textContent = communityVisible ? '✕ Close' : '🌍 Community';
@@ -1944,6 +2081,191 @@ function setDay(i,d){plan[i].day=d;}
 function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));renderAll();}
 function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
+
+// ---- SAVED MENUS ----
+let SAVED_MENUS = [];
+let savedMenusVisible = false;
+let smCurrentTab = 'weekly';
+let _detailMenuId = null;
+let _ebItems = [];
+let _ebEditId = null;
+
+function toggleSavedMenus(){
+  if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
+  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
+  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
+  savedMenusVisible = !savedMenusVisible;
+  document.getElementById('sm-section').classList.toggle('hidden', !savedMenusVisible);
+  document.getElementById('sm-btn').textContent = savedMenusVisible ? '✕ Close' : '📋 Saved Menus';
+  if(savedMenusVisible){ setSMTab(smCurrentTab); window.scrollTo({top:0,behavior:'smooth'}); }
+}
+
+function setSMTab(tab){
+  smCurrentTab = tab;
+  document.querySelectorAll('.sm-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sm-tab-'+tab).classList.add('active');
+  document.getElementById('sm-new-btn').style.display = tab==='event' ? 'inline-block' : 'none';
+  renderSavedMenus();
+}
+
+function renderSavedMenus(){
+  const grid = document.getElementById('sm-grid');
+  const menus = SAVED_MENUS.filter(m=>m.type===smCurrentTab);
+  if(!menus.length){
+    const msg = smCurrentTab==='weekly'
+      ? 'No saved weekly menus yet.<br><small>Suggest a week, then click <strong>💾 Save This Week</strong>.</small>'
+      : 'No event menus yet.<br><small>Click <strong>+ New Event Menu</strong> to create one.</small>';
+    grid.innerHTML=`<div class="sm-empty">${msg}</div>`; return;
+  }
+  grid.innerHTML = menus.map(m=>{
+    if(m.type==='weekly'){
+      const meals=m.plan||[];
+      const preview=meals.slice(0,4).map(p=>`<span><strong>${p.day}:</strong> ${p.r?.name||'—'}</span>`).join('');
+      const more=meals.length>4?`<span style="font-style:italic">+${meals.length-4} more…</span>`:'';
+      return `<div class="sm-card" onclick="openMenuDetail('${m.id}')">
+        <button class="sm-del" onclick="event.stopPropagation();deleteMenu('${m.id}')" title="Delete">🗑</button>
+        <div class="sm-card-name">${m.name}</div>
+        <div class="sm-card-meta">📅 Saved ${m.savedAt} · ${meals.length} meal${meals.length!==1?'s':''}</div>
+        <div class="sm-card-preview">${preview}${more}</div>
+      </div>`;
+    } else {
+      const items=m.items||[];
+      const preview=items.slice(0,4).map(it=>`<span>${it.label?`<strong>${it.label}:</strong> `:''}${it.customName||it.recipeName||'—'}</span>`).join('');
+      const more=items.length>4?`<span style="font-style:italic">+${items.length-4} more…</span>`:'';
+      return `<div class="sm-card" onclick="openMenuDetail('${m.id}')">
+        <button class="sm-del" onclick="event.stopPropagation();deleteMenu('${m.id}')" title="Delete">🗑</button>
+        <div class="sm-card-name">${m.name}</div>
+        <div class="sm-card-meta">🎉 Saved ${m.savedAt} · ${items.length} item${items.length!==1?'s':''}</div>
+        <div class="sm-card-preview">${preview}${more}</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+// Save current week
+function saveCurrentWeek(){
+  if(!plan.length){ alert('No meals planned yet — suggest or add meals first.'); return; }
+  document.getElementById('save-week-name').value = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('save-week-modal-bg').classList.add('open');
+  setTimeout(()=>{ const el=document.getElementById('save-week-name'); el.focus(); el.select(); },80);
+}
+function closeSaveWeekModal(){ document.getElementById('save-week-modal-bg').classList.remove('open'); }
+function confirmSaveWeek(){
+  const name = document.getElementById('save-week-name').value.trim() || new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  SAVED_MENUS.unshift({
+    id:'w_'+Date.now(), type:'weekly', name,
+    savedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    plan: JSON.parse(JSON.stringify(plan))
+  });
+  saveMenusToStorage();
+  closeSaveWeekModal();
+  const btn = document.getElementById('save-week-btn');
+  if(btn){ const orig=btn.textContent; btn.textContent='✓ Saved!'; setTimeout(()=>btn.textContent=orig,2000); }
+}
+
+// Menu detail
+function openMenuDetail(id){
+  const m=SAVED_MENUS.find(x=>x.id===id); if(!m) return;
+  _detailMenuId=id;
+  document.getElementById('md-title').textContent=m.name;
+  document.getElementById('md-date').textContent='Saved '+m.savedAt;
+  document.getElementById('md-load-btn').style.display=m.type==='weekly'?'inline-block':'none';
+  document.getElementById('md-edit-btn').style.display=m.type==='event'?'inline-block':'none';
+  const body=document.getElementById('md-body');
+  if(m.type==='weekly'){
+    body.innerHTML=(m.plan||[]).map(p=>{
+      const extras=[
+        p.breakfast?`🌅 ${p.breakfast.name}`:null,
+        p.lunch?`☀️ ${p.lunch.name}`:null,
+        p.side?`🥗 ${p.side.name}`:null,
+        p.dessert?`🍰 ${p.dessert.name}`:null,
+      ].filter(Boolean).join(' · ');
+      return `<div class="md-day-row"><div class="md-day-label">${p.day}</div><div><div class="md-day-name">${p.r?.name||'—'}</div>${extras?`<div class="md-day-extras">${extras}</div>`:''}</div></div>`;
+    }).join('');
+  } else {
+    const items=m.items||[];
+    body.innerHTML=items.length?items.map(it=>`<div class="md-item-row"><div class="md-item-label">${it.label||''}</div><div class="md-item-name">${it.customName||it.recipeName||'—'}</div></div>`).join(''):'<div class="sm-empty">No items in this menu.</div>';
+  }
+  document.getElementById('menu-detail-bg').classList.add('open');
+}
+function closeMenuDetail(){ document.getElementById('menu-detail-bg').classList.remove('open'); _detailMenuId=null; }
+function deleteMenuFromDetail(){ if(!_detailMenuId) return; closeMenuDetail(); deleteMenu(_detailMenuId); }
+function editMenuFromDetail(){ if(!_detailMenuId) return; const id=_detailMenuId; closeMenuDetail(); openEventBuilder(id); }
+function loadMenuFromDetail(){
+  if(!_detailMenuId) return;
+  const m=SAVED_MENUS.find(x=>x.id===_detailMenuId); if(!m||m.type!=='weekly') return;
+  if(!confirm(`Load "${m.name}" into the planner? This will replace your current week.`)) return;
+  plan=JSON.parse(JSON.stringify(m.plan));
+  closeMenuDetail();
+  if(savedMenusVisible) toggleSavedMenus();
+  renderAll();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteMenu(id){
+  const m=SAVED_MENUS.find(x=>x.id===id); if(!m) return;
+  if(!confirm(`Delete "${m.name}"? This can't be undone.`)) return;
+  SAVED_MENUS=SAVED_MENUS.filter(x=>x.id!==id);
+  saveMenusToStorage();
+  if(savedMenusVisible) renderSavedMenus();
+}
+
+// Event builder
+function openEventBuilder(editId){
+  _ebEditId=editId||null;
+  const existing=editId?SAVED_MENUS.find(x=>x.id===editId):null;
+  document.getElementById('eb-title').textContent=existing?'✏ Edit Event Menu':'🎉 New Event Menu';
+  document.getElementById('eb-name').value=existing?existing.name:'';
+  _ebItems=existing?JSON.parse(JSON.stringify(existing.items||[])):[];
+  document.getElementById('eb-search').value='';
+  document.getElementById('eb-label').value='';
+  document.getElementById('eb-custom').value='';
+  renderEBItems(); renderEBPicker();
+  document.getElementById('event-builder-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('eb-name').focus(),80);
+}
+function closeEventBuilder(){ document.getElementById('event-builder-bg').classList.remove('open'); _ebItems=[]; _ebEditId=null; }
+
+function renderEBItems(){
+  const el=document.getElementById('eb-items');
+  if(!_ebItems.length){ el.innerHTML='<div style="font-size:.82rem;color:var(--muted);padding:.3rem 0">No items yet — add recipes below.</div>'; return; }
+  el.innerHTML=_ebItems.map((it,i)=>`<div class="eb-item">${it.label?`<span class="eb-item-label">${it.label}</span>`:''}<span class="eb-item-name">${it.customName||it.recipeName||'—'}</span><button class="eb-item-del" onclick="removeEBItem(${i})" title="Remove">✕</button></div>`).join('');
+}
+function renderEBPicker(){
+  const q=(document.getElementById('eb-search').value||'').toLowerCase();
+  let opts=R.filter(r=>!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q));
+  if(opts.length>48) opts=opts.slice(0,48);
+  document.getElementById('eb-recipe-picker').innerHTML=opts.map(r=>`<div class="eb-r-opt" onclick="addEBRecipe(${r.id})"><div class="eb-r-opt-name">${r.name}</div><div class="eb-r-opt-src">${r.src}</div></div>`).join('');
+}
+function addEBRecipe(id){
+  const r=R.find(x=>x.id===id); if(!r) return;
+  const label=document.getElementById('eb-label').value.trim();
+  _ebItems.push({recipeId:r.id,recipeName:r.name,label});
+  renderEBItems();
+}
+function addEBCustom(){
+  const name=document.getElementById('eb-custom').value.trim(); if(!name) return;
+  const label=document.getElementById('eb-label').value.trim();
+  _ebItems.push({customName:name,label});
+  document.getElementById('eb-custom').value='';
+  renderEBItems();
+}
+function removeEBItem(idx){ _ebItems.splice(idx,1); renderEBItems(); }
+function saveEventMenu(){
+  const name=document.getElementById('eb-name').value.trim();
+  if(!name){ alert('Please give this menu a name.'); document.getElementById('eb-name').focus(); return; }
+  if(!_ebItems.length){ alert('Please add at least one recipe or dish.'); return; }
+  if(_ebEditId){
+    const idx=SAVED_MENUS.findIndex(x=>x.id===_ebEditId);
+    if(idx>-1){ SAVED_MENUS[idx].name=name; SAVED_MENUS[idx].items=[..._ebItems]; }
+  } else {
+    SAVED_MENUS.unshift({id:'e_'+Date.now(),type:'event',name,savedAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),items:[..._ebItems]});
+  }
+  saveMenusToStorage();
+  closeEventBuilder();
+  if(savedMenusVisible) renderSavedMenus();
+}
+
+function saveMenusToStorage(){ saveToStorage(); }
 
 // ---- INIT ----
 rebuildTagUI(); // runs on default tags; rebuilt again after auth loads user data
