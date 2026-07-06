@@ -378,7 +378,8 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
       <button class="sbt" id="sbt-fall" onclick="setSeason('fall')">🍂 Fall</button>
       <button class="sbt" id="sbt-winter" onclick="setSeason('winter')">❄️ Winter</button>
     </div>
-    <button class="btn btn-accent" onclick="handleSuggest()">✨ Suggest a week</button>
+    <button class="btn btn-accent" onclick="handleSuggest()">✨ Randomize</button>
+    <button class="btn btn-outline" style="background:#fff;color:var(--accent);border-color:var(--accent)" onclick="handleBlankPlan()">📝 Start Blank</button>
   </div>
 
   <!-- Community Section -->
@@ -1921,7 +1922,18 @@ function timeTag(t, tags=[]){
 }
 
 function renderCards(){
-  document.getElementById('plan-grid').innerHTML=plan.map(({r,day},i)=>`
+  document.getElementById('plan-grid').innerHTML=plan.map(({r,day},i)=>{
+    if(!r) return `<div class="meal-card" style="cursor:default;border-style:dashed">
+      <div class="card-day">📅 ${day}</div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.25rem 0;gap:.65rem;color:var(--muted)">
+        <div style="font-size:.82rem">No meal selected</div>
+        <button class="btn-swap" onclick="openSwap(${i})" style="font-size:.82rem;padding:.35rem .9rem">+ Pick a Main</button>
+      </div>
+      <div class="card-foot">
+        <select class="day-sel" onchange="setDay(${i},this.value)">${DAYS.map(d=>`<option${d===day?' selected':''}>${d}</option>`).join('')}</select>
+      </div>
+    </div>`;
+    return `
     <div class="meal-card" onclick="handleCardClick(event,${r.id})">
       <div class="card-day">📅 ${day}${hasRules(day)?` <span style="font-size:.62rem;background:var(--accent-light);color:var(--accent);padding:.08rem .35rem;border-radius:8px;font-weight:700" title="${ruleSummary(day)}">Rules set</span>`:''}</div>
       ${(()=>{const rules=DAY_RULES[day];return rules&&!passesRules(r,rules)?`<div class="card-violation">⚠ Doesn't match ${day}'s rules</div>`:''})()}
@@ -1973,7 +1985,8 @@ function renderCards(){
             :`<button class="btn-extra" onclick="suggestDessert(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openDessertPicker(${i})">+ Pick</button>`}
         </div>
       </div>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderShared(){
@@ -2079,6 +2092,7 @@ function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();
 // ---- CONTROLS ----
 function setDay(i,d){plan[i].day=d;}
 function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));renderAll();}
+function handleBlankPlan(){plan=DAYS.slice(0,numMeals).map(day=>({day,r:null}));renderAll();}
 function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
