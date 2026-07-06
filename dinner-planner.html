@@ -1426,7 +1426,7 @@ async function _doSave(){
     await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:{...DAY_RULES,_savedMenus:SAVED_MENUS},display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
     // Sync originals to community (exclude copies saved from other users)
     const handle=_displayName||_currentUser.email.split('@')[0];
-    const originals=R.filter(r=>!r.saved_from);
+    const originals=R.filter(r=>!r.saved_from&&!r.seed);
     if(originals.length){
       await sb.from('public_recipes').upsert(
         originals.map(r=>({user_id:_currentUser.id,recipe_id:r.id,recipe:r,user_handle:handle,updated_at:new Date().toISOString()})),
@@ -1442,7 +1442,7 @@ function syncNewRecipes(){
   let added=0;
   SEED_RECIPES.forEach(seed=>{
     if(!R.find(r=>r.id===seed.id)){
-      R.push({...seed});
+      R.push({...seed,seed:true});
       added++;
     }
   });
@@ -1487,7 +1487,7 @@ async function loadUserData(user){
         // Add any new seed recipes not yet in user's account
         SEED_RECIPES.forEach(seed=>{
           if(!R.find(r=>r.id===seed.id)){
-            R.push({...seed});
+            R.push({...seed,seed:true});
             migrated=true;
           }
         });
@@ -1508,7 +1508,7 @@ async function loadUserData(user){
 
 async function loadStarterRecipes(){
   R.length=0;
-  SEED_RECIPES.forEach(r=>R.push({...r}));
+  SEED_RECIPES.forEach(r=>R.push({...r,seed:true}));
   nextId=Math.max(...R.map(r=>r.id),0)+1;
   saveToStorage();
   rebuildTagUI();
