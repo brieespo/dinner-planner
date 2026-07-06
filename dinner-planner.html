@@ -1927,7 +1927,10 @@ function renderCards(){
       <div class="card-day">📅 ${day}</div>
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.25rem 0;gap:.65rem;color:var(--muted)">
         <div style="font-size:.82rem">No meal selected</div>
-        <button class="btn-swap" onclick="openSwap(${i})" style="font-size:.82rem;padding:.35rem .9rem">+ Pick a Main</button>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn-swap" onclick="suggestMain(${i})" style="font-size:.82rem;padding:.35rem .9rem">🎲 Suggest</button>
+          <button class="btn-swap" onclick="openSwap(${i})" style="font-size:.82rem;padding:.35rem .9rem">+ Pick</button>
+        </div>
       </div>
       <div class="card-foot">
         <select class="day-sel" onchange="setDay(${i},this.value)">${DAYS.map(d=>`<option${d===day?' selected':''}>${d}</option>`).join('')}</select>
@@ -2093,6 +2096,16 @@ function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();
 function setDay(i,d){plan[i].day=d;}
 function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));renderAll();}
 function handleBlankPlan(){plan=DAYS.slice(0,numMeals).map(day=>({day,r:null}));renderAll();}
+function suggestMain(i){
+  const used=new Set(plan.map(p=>p.r?.id).filter(Boolean));
+  const isMain=r=>r.type==='main'||(!r.tags.includes('side')&&!r.tags.includes('dessert')&&!r.tags.includes('condiment'));
+  let pool=R.filter(r=>!used.has(r.id)&&isMain(r)&&passesRules(r,DAY_RULES[plan[i].day]||null));
+  if(!pool.length) pool=R.filter(r=>isMain(r)&&passesRules(r,DAY_RULES[plan[i].day]||null));
+  if(!pool.length){ alert('No main recipes found — try adjusting your day rules.'); return; }
+  if(currentSeason){ const seasonal=pool.filter(r=>isPreferredSeason(r)); if(seasonal.length) pool=seasonal; }
+  plan[i]={...plan[i],r:pool[Math.floor(Math.random()*pool.length)]};
+  renderAll();
+}
 function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
