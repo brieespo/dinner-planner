@@ -352,6 +352,7 @@ main{max-width:1100px;margin:0 auto;padding:1.75rem 2rem}
           <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();syncNewRecipes()">🔄 Sync New Recipes</button>
+          <button class="more-menu-item" onclick="closeMoreMenu();updateRecipes()">⬆ Update Recipes</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openDisplayNameModal()">👤 Set Display Name</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
           <div class="more-menu-divider"></div>
@@ -1436,6 +1437,27 @@ async function _doSave(){
   }catch(e){ console.error('save error',e); }
 }
 function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSave,600); }
+
+function updateRecipes(){
+  if(!_currentUser){ alert('Please sign in first.'); return; }
+  if(!confirm('This will update all your existing recipes with the latest versions from the starter collection. Your favorites and made-it marks are preserved. Personal recipes you added yourself are untouched. Continue?')) return;
+  let count=0;
+  SEED_RECIPES.forEach(seed=>{
+    const idx=R.findIndex(r=>r.id===seed.id);
+    if(idx>-1){
+      R[idx]={...seed,seed:true,fav:R[idx].fav,made:R[idx].made};
+      count++;
+    } else {
+      R.push({...seed,seed:true});
+      count++;
+    }
+  });
+  nextId=Math.max(...R.map(r=>r.id),0)+1;
+  saveToStorage();
+  renderAll();
+  if(dbVisible) renderDB();
+  alert(`✅ Updated ${count} recipe${count!==1?'s':''}!`);
+}
 
 function syncNewRecipes(){
   if(!_currentUser){ alert('Please sign in first.'); return; }
