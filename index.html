@@ -12,10 +12,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
-:root[data-theme="green"]{--bg:#f3faf3;--accent:#2b8a3e;--accent-light:#e4f5e7;--sand:#d8ecd8;--muted:#68796a;--border:#d3e6d3}
+:root[data-theme="green"]{--bg:#ffffff;--accent:#2b8a3e;--accent-light:#eaf7ed;--sand:#f0f4f0;--muted:#6b7570;--border:#e5e9e5}
 :root[data-theme="pink"]{--bg:#f4edfa;--accent:#d6336c;--accent-light:#fbe4ee;--sand:#e5d5f2;--muted:#7d6e88;--border:#ddccee}
 :root[data-theme="ocean"]{--bg:#f2f8fa;--accent:#1d7a8c;--accent-light:#e0f1f5;--sand:#d7e8ed;--muted:#657e86;--border:#d2e3e8}
-:root[data-theme="honey"]{--bg:#fbf7ec;--accent:#9c6f08;--accent-light:#faf0d7;--sand:#efe3c3;--muted:#7d715a;--border:#e7dcc0}
+:root[data-theme="honey"]{--bg:#fdf8ed;--accent:#b45309;--accent-light:#fcefd6;--sand:#f2e1bd;--muted:#82725a;--border:#ecdcbd}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
 header{background:var(--accent);color:#fff;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(160,76,32,.25)}
 header h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.18)}
@@ -1698,10 +1698,10 @@ function closeHelpModal(){ document.getElementById('help-modal').classList.remov
 // ---- COLOR THEMES ----
 const THEMES=[
   {id:'',      name:'Terracotta',   accent:'#b85c2c', bg:'#faf8f4'},
-  {id:'green', name:'Garden Green', accent:'#2b8a3e', bg:'#f3faf3'},
-  {id:'pink',  name:'Berry Pink',   accent:'#d6336c', bg:'#f7f2fb'},
+  {id:'green', name:'Garden Green', accent:'#2b8a3e', bg:'#ffffff'},
+  {id:'pink',  name:'Berry Pink',   accent:'#d6336c', bg:'#f4edfa'},
   {id:'ocean', name:'Ocean Blue',   accent:'#1d7a8c', bg:'#f2f8fa'},
-  {id:'honey', name:'Honey Gold',   accent:'#9c6f08', bg:'#fbf7ec'},
+  {id:'honey', name:'Honey Gold',   accent:'#b45309', bg:'#fdf8ed'},
 ];
 function renderThemeGrid(){
   let cur=''; try{cur=localStorage.getItem('dp-theme')||'';}catch(e){}
