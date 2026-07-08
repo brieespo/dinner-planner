@@ -13,7 +13,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-header{background:radial-gradient(circle at 88% -30%,rgba(255,255,255,.16),transparent 50%),linear-gradient(120deg,#a04c20,#b85c2c 55%,#cd7440);color:#fff;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 14px rgba(160,76,32,.28)}
+header{background:var(--accent);color:#fff;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(160,76,32,.25)}
 header h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.18)}
 header p{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:.9rem;opacity:.9;letter-spacing:.02em}
 /* More dropdown */
@@ -37,8 +37,28 @@ header p{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-siz
 .btn-swap{background:var(--accent-light);color:var(--accent);border:none;padding:.28rem .7rem;font-size:.78rem;border-radius:4px;font-weight:600;cursor:pointer}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.3rem .8rem;font-size:.8rem;border-radius:5px;cursor:pointer}
 main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
-.setup{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;margin-bottom:2.25rem}
-.setup label{font-weight:600;font-size:.9rem;color:var(--muted)}
+#setup-area{margin-bottom:2.25rem}
+.home-greeting{font-family:'DM Serif Display',Georgia,serif;font-size:1.7rem;margin-bottom:1.1rem}
+.setup-controls{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.setup-controls label{font-weight:600;font-size:.9rem;color:var(--muted)}
+.start-choice{display:flex;align-items:stretch;gap:1rem;flex-wrap:wrap}
+.choice-card{flex:1;min-width:230px;max-width:420px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.3rem 1.4rem;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:.35rem;font-family:inherit;box-shadow:0 1px 2px rgba(44,40,37,.04),0 4px 12px rgba(44,40,37,.05);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,border-color .2s ease}
+.choice-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 28px rgba(184,92,44,.15),0 3px 8px rgba(44,40,37,.07)}
+.choice-emoji{font-size:1.5rem}
+.choice-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.2rem;color:var(--text)}
+.choice-desc{font-size:.84rem;color:var(--muted);line-height:1.5}
+.choice-or{align-self:center;font-family:'DM Serif Display',Georgia,serif;font-style:italic;color:var(--muted)}
+#setup-area.compact{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;margin-bottom:2rem}
+#setup-area.compact .home-greeting{display:none}
+#setup-area.compact .setup-controls{margin-bottom:0}
+#setup-area.compact .start-choice{gap:.6rem}
+#setup-area.compact .choice-card{flex:none;min-width:0;flex-direction:row;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;box-shadow:none}
+#setup-area.compact .choice-card:hover{transform:none}
+#setup-area.compact .choice-emoji{font-size:.95rem}
+#setup-area.compact .choice-title{font-family:inherit;font-size:.875rem;font-weight:600}
+#setup-area.compact .choice-desc,#setup-area.compact .choice-or{display:none}
+#setup-area.compact .choice-primary{background:var(--accent);border-color:var(--accent)}
+#setup-area.compact .choice-primary .choice-title{color:#fff}
 .num-picker{display:flex;gap:.35rem}
 .nbt{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text)}
 .nbt.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -352,7 +372,7 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
   <div class="print-hide" style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">
     <div id="user-info" style="display:none;font-size:.72rem;opacity:.75;letter-spacing:.01em"><span id="user-email"></span></div>
     <div style="display:flex;gap:.6rem;align-items:center">
-      <button class="btn btn-outline" id="reset-btn" style="display:none" onclick="handleReset()">↺ Reset</button>
+      <button class="btn btn-outline" id="home-btn" onclick="goHome()">📅 Meal Plan Generator</button>
       <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">📖 All Recipes</button>
       <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
       <button class="btn btn-outline" id="community-btn" onclick="toggleCommunity()">🌍 Community</button>
@@ -379,24 +399,71 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 </header>
 
 <main>
+<div id="home-section">
   <div id="starter-banner" class="hidden">
     <p>Your recipe book is empty. <span>Add your own recipes, or start with our curated collection of 62 dinners, sides & desserts.</span></p>
     <button class="btn btn-accent" onclick="loadStarterRecipes()">Load starter recipes</button>
   </div>
-  <div class="setup">
-    <label>How many dinners?</label>
-    <div class="num-picker" id="num-picker"></div>
-    <div class="season-picker">
-      <label>Season:</label>
-      <button class="sbt" id="sbt-" onclick="setSeason('')">All</button>
-      <button class="sbt" id="sbt-spring" onclick="setSeason('spring')">🌱 Spring</button>
-      <button class="sbt" id="sbt-summer" onclick="setSeason('summer')">☀️ Summer</button>
-      <button class="sbt" id="sbt-fall" onclick="setSeason('fall')">🍂 Fall</button>
-      <button class="sbt" id="sbt-winter" onclick="setSeason('winter')">❄️ Winter</button>
+  <div id="setup-area">
+    <div class="home-greeting">What's for dinner this week?</div>
+    <div class="setup-controls">
+      <label>How many dinners?</label>
+      <div class="num-picker" id="num-picker"></div>
+      <div class="season-picker">
+        <label>Season:</label>
+        <button class="sbt" id="sbt-" onclick="setSeason('')">All</button>
+        <button class="sbt" id="sbt-spring" onclick="setSeason('spring')">🌱 Spring</button>
+        <button class="sbt" id="sbt-summer" onclick="setSeason('summer')">☀️ Summer</button>
+        <button class="sbt" id="sbt-fall" onclick="setSeason('fall')">🍂 Fall</button>
+        <button class="sbt" id="sbt-winter" onclick="setSeason('winter')">❄️ Winter</button>
+      </div>
     </div>
-    <button class="btn btn-accent" onclick="handleSuggest()">✨ Randomize</button>
-    <button class="btn btn-outline" style="background:#fff;color:var(--accent);border-color:var(--accent)" onclick="handleBlankPlan()">📝 Start Blank</button>
+    <div class="start-choice">
+      <button class="choice-card choice-primary" onclick="handleSuggest()">
+        <span class="choice-emoji">✨</span>
+        <span class="choice-title">Randomize My Week</span>
+        <span class="choice-desc">Auto-fill every day at once using your day rules and season. Swap any meal after.</span>
+      </button>
+      <div class="choice-or">or</div>
+      <button class="choice-card" onclick="handleBlankPlan()">
+        <span class="choice-emoji">📝</span>
+        <span class="choice-title">Start From Scratch</span>
+        <span class="choice-desc">Begin with a blank week and pick each dinner yourself.</span>
+      </button>
+    </div>
   </div>
+
+  <div id="plan-section" class="hidden">
+    <div class="extras-header">
+      <div class="section-title" style="margin-bottom:0">📅 This Week's Plan</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn-ghost" id="breakfast-toggle" onclick="toggleBreakfast()">🌅 Add Breakfast</button>
+        <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
+        <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+        <button class="btn-ghost" id="save-week-btn" onclick="saveCurrentWeek()">💾 Save This Week</button>
+      </div>
+    </div>
+    <div id="extras-bar" class="hidden extras-bar">
+      <button class="btn-ghost" onclick="suggestAllSides()">🎲 Suggest all sides</button>
+      <button class="btn-ghost" onclick="suggestAllDesserts()">🍰 Suggest all desserts</button>
+      <button class="btn-ghost" onclick="clearAllExtras()">✕ Clear all</button>
+    </div>
+    <div class="plan-grid" id="plan-grid"></div>
+
+    <div class="box" id="shared-box">
+      <div class="section-title">🔗 Shared Ingredients</div>
+      <div id="shared-out"></div>
+    </div>
+
+    <div class="box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+        <div class="section-title" style="margin-bottom:0">🛒 Shopping List</div>
+        <button id="grocery-edit-btn" class="btn-ghost" style="font-size:.78rem;padding:.25rem .6rem" onclick="toggleGroceryEdit()">✏ Edit</button>
+      </div>
+      <div id="grocery-out"></div>
+    </div>
+  </div>
+</div>
 
   <!-- Community Section -->
   <div id="community-section" class="hidden">
@@ -460,37 +527,6 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
       <button class="type-tab" onclick="setTypeTab('snack')">Snacks</button>
     </div>
     <div class="db-grid" id="db-grid"></div>
-  </div>
-
-  <div id="plan-section" class="hidden">
-    <div class="extras-header">
-      <div class="section-title" style="margin-bottom:0">📅 This Week's Plan</div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn-ghost" id="breakfast-toggle" onclick="toggleBreakfast()">🌅 Add Breakfast</button>
-        <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
-        <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
-        <button class="btn-ghost" id="save-week-btn" onclick="saveCurrentWeek()">💾 Save This Week</button>
-      </div>
-    </div>
-    <div id="extras-bar" class="hidden extras-bar">
-      <button class="btn-ghost" onclick="suggestAllSides()">🎲 Suggest all sides</button>
-      <button class="btn-ghost" onclick="suggestAllDesserts()">🍰 Suggest all desserts</button>
-      <button class="btn-ghost" onclick="clearAllExtras()">✕ Clear all</button>
-    </div>
-    <div class="plan-grid" id="plan-grid"></div>
-
-    <div class="box" id="shared-box">
-      <div class="section-title">🔗 Shared Ingredients</div>
-      <div id="shared-out"></div>
-    </div>
-
-    <div class="box">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
-        <div class="section-title" style="margin-bottom:0">🛒 Shopping List</div>
-        <button id="grocery-edit-btn" class="btn-ghost" style="font-size:.78rem;padding:.25rem .6rem" onclick="toggleGroceryEdit()">✏ Edit</button>
-      </div>
-      <div id="grocery-out"></div>
-    </div>
   </div>
 </main>
 
@@ -1050,20 +1086,27 @@ function setTypeTab(type){
   renderDB();
 }
 
-function goHome(){
-  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
-  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
-  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
+function showPage(page){
+  dbVisible = page==='db';
+  communityVisible = page==='community';
+  savedMenusVisible = page==='sm';
+  document.getElementById('home-section').classList.toggle('hidden', page!=='home');
+  document.getElementById('db-section').classList.toggle('hidden', !dbVisible);
+  document.getElementById('community-section').classList.toggle('hidden', !communityVisible);
+  document.getElementById('sm-section').classList.toggle('hidden', !savedMenusVisible);
+  document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : '📖 All Recipes';
+  document.getElementById('community-btn').textContent = communityVisible ? '✕ Close' : '🌍 Community';
+  document.getElementById('sm-btn').textContent = savedMenusVisible ? '✕ Close' : '📋 Saved Menus';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function goHome(){ showPage('home'); }
+
 function toggleDB(){
-  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
-  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
-  dbVisible = !dbVisible;
-  document.getElementById('db-section').classList.toggle('hidden', !dbVisible);
-  document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : '📖 All Recipes';
-  if(dbVisible){ renderDB(); document.getElementById('db-search').focus(); }
+  if(dbVisible){ showPage('home'); return; }
+  showPage('db');
+  renderDB();
+  document.getElementById('db-search').focus();
 }
 
 function dbCardHTML(r){
@@ -1515,12 +1558,9 @@ function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=M
 
 function toggleCommunity(){
   if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
-  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
-  if(savedMenusVisible){ savedMenusVisible=false; document.getElementById('sm-section').classList.add('hidden'); document.getElementById('sm-btn').textContent='📋 Saved Menus'; }
-  communityVisible = !communityVisible;
-  document.getElementById('community-section').classList.toggle('hidden',!communityVisible);
-  document.getElementById('community-btn').textContent = communityVisible ? '✕ Close' : '🌍 Community';
-  if(communityVisible){ renderCommunity(); window.scrollTo({top:0,behavior:'smooth'}); }
+  if(communityVisible){ showPage('home'); return; }
+  showPage('community');
+  renderCommunity();
 }
 
 async function renderCommunity(){
@@ -2080,7 +2120,7 @@ function renderGrocery(){
 function renderAll(){
   renderCards(); renderShared(); renderGrocery();
   document.getElementById('plan-section').classList.remove('hidden');
-  document.getElementById('reset-btn').style.display='inline-block';
+  document.getElementById('setup-area').classList.add('compact');
 }
 
 // ---- MODAL ----
@@ -2161,7 +2201,6 @@ function suggestMain(i){
   plan[i]={...plan[i],r:pool[Math.floor(Math.random()*pool.length)]};
   renderAll();
 }
-function handleReset(){plan=[];document.getElementById('plan-section').classList.add('hidden');document.getElementById('reset-btn').style.display='none';}
 function setN(n){numMeals=n;document.querySelectorAll('.nbt').forEach(b=>b.classList.toggle('active',+b.dataset.n===n));}
 
 // ---- SAVED MENUS ----
@@ -2174,12 +2213,9 @@ let _ebEditId = null;
 
 function toggleSavedMenus(){
   if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
-  if(dbVisible){ dbVisible=false; document.getElementById('db-section').classList.add('hidden'); document.getElementById('db-btn').textContent='📖 All Recipes'; }
-  if(communityVisible){ communityVisible=false; document.getElementById('community-section').classList.add('hidden'); document.getElementById('community-btn').textContent='🌍 Community'; }
-  savedMenusVisible = !savedMenusVisible;
-  document.getElementById('sm-section').classList.toggle('hidden', !savedMenusVisible);
-  document.getElementById('sm-btn').textContent = savedMenusVisible ? '✕ Close' : '📋 Saved Menus';
-  if(savedMenusVisible){ setSMTab(smCurrentTab); window.scrollTo({top:0,behavior:'smooth'}); }
+  if(savedMenusVisible){ showPage('home'); return; }
+  showPage('sm');
+  setSMTab(smCurrentTab);
 }
 
 function setSMTab(tab){
