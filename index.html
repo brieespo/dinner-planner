@@ -1853,8 +1853,8 @@ function toggleLunch(){
   renderAll();
 }
 
-function suggestBreakfast(i){ const pool=R.filter(r=>r.type!=='side'&&r.type!=='dessert'&&r.type!=='condiment'); if(!pool.length) return; plan[i]={...plan[i],breakfast:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
-function suggestLunch(i){ const pool=R.filter(r=>r.type!=='side'&&r.type!=='dessert'&&r.type!=='condiment'); if(!pool.length) return; plan[i]={...plan[i],lunch:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function suggestBreakfast(i){ let pool=R.filter(r=>r.type==='breakfast'); if(!pool.length) pool=R.filter(r=>(r.type||'main')==='main'); if(!pool.length) return; plan[i]={...plan[i],breakfast:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
+function suggestLunch(i){ let pool=R.filter(r=>r.type==='lunch'); if(!pool.length) pool=R.filter(r=>(r.type||'main')==='main'); if(!pool.length) return; plan[i]={...plan[i],lunch:pool[Math.floor(Math.random()*pool.length)]}; renderAll(); }
 function clearBreakfast(i){ plan[i]={...plan[i],breakfast:undefined}; renderAll(); }
 function clearLunch(i){ plan[i]={...plan[i],lunch:undefined}; renderAll(); }
 
@@ -1889,7 +1889,7 @@ function suggest(n) {
   const days = DAYS.slice(0, n);
   const result = [];
   const used = new Set();
-  const isMain = r => r.type!=='side' && r.type!=='dessert' && r.type!=='condiment';
+  const isMain = r => (r.type||'main')==='main';
   const fp = (rules) => {
     const all = R.filter(r => !used.has(r.id) && isMain(r) && passesRules(r, rules||null));
     if(!currentSeason) return all;
@@ -2164,17 +2164,19 @@ function renderModal(){
     noteEl.style.display='none';
   } else if(modalMode==='breakfast'){
     title='Choose a breakfast';
-    opts=R.filter(r=>r.type!=='side'&&r.type!=='dessert'&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
+    const bBase=R.some(r=>r.type==='breakfast')?R.filter(r=>r.type==='breakfast'):R.filter(r=>(r.type||'main')==='main');
+    opts=bBase.filter(r=>(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     noteEl.style.display='none';
   } else if(modalMode==='lunch'){
     title='Choose a lunch';
-    opts=R.filter(r=>r.type!=='side'&&r.type!=='dessert'&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
+    const lBase=R.some(r=>r.type==='lunch')?R.filter(r=>r.type==='lunch'):R.filter(r=>(r.type||'main')==='main');
+    opts=lBase.filter(r=>(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     noteEl.style.display='none';
   } else {
     title='Choose a recipe';
     const rules=day?DAY_RULES[day]:null;
     const constrained=rules&&(rules.time||(rules.tags&&rules.tags.length));
-    opts=R.filter(r=>!inPlan.has(r.id)&&r.type!=='side'&&r.type!=='dessert'&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
+    opts=R.filter(r=>!inPlan.has(r.id)&&(r.type||'main')==='main'&&(!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q)||r.ings.some(i=>i.n.toLowerCase().includes(q))));
     if(constrained&&!swapShowAll){
       opts=opts.filter(r=>passesRules(r,rules));
       noteEl.style.display='';
@@ -2216,7 +2218,7 @@ function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,des
 function handleBlankPlan(){plan=DAYS.slice(0,numMeals).map(day=>({day,r:null}));renderAll();}
 function suggestMain(i){
   const used=new Set(plan.map(p=>p.r?.id).filter(Boolean));
-  const isMain=r=>r.type!=='side'&&r.type!=='dessert'&&r.type!=='condiment';
+  const isMain=r=>(r.type||'main')==='main';
   let pool=R.filter(r=>!used.has(r.id)&&isMain(r)&&passesRules(r,DAY_RULES[plan[i].day]||null));
   if(!pool.length) pool=R.filter(r=>isMain(r)&&passesRules(r,DAY_RULES[plan[i].day]||null));
   if(!pool.length){ alert('No main recipes found — try adjusting your day rules.'); return; }
