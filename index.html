@@ -12,6 +12,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
+:root[data-theme="paprika"]{--bg:#fdf6ea;--accent:#ae2b26;--accent-light:#f9e5dc;--sand:#f1e3cb;--muted:#837060;--border:#e9dac4}
 :root[data-theme="green"]{--bg:#ffffff;--accent:#2b8a3e;--accent-light:#eaf7ed;--sand:#f0f4f0;--muted:#6b7570;--border:#e5e9e5}
 :root[data-theme="pink"]{--bg:#f4edfa;--accent:#d6336c;--accent-light:#fbe4ee;--sand:#e5d5f2;--muted:#7d6e88;--border:#ddccee}
 :root[data-theme="ocean"]{--bg:#f2f8fa;--accent:#1d7a8c;--accent-light:#e0f1f5;--sand:#d7e8ed;--muted:#657e86;--border:#d2e3e8}
@@ -1697,11 +1698,12 @@ function closeHelpModal(){ document.getElementById('help-modal').classList.remov
 
 // ---- COLOR THEMES ----
 const THEMES=[
-  {id:'',      name:'Terracotta',   accent:'#b85c2c', bg:'#faf8f4'},
-  {id:'green', name:'Garden Green', accent:'#2b8a3e', bg:'#ffffff'},
-  {id:'pink',  name:'Berry Pink',   accent:'#d6336c', bg:'#f4edfa'},
-  {id:'ocean', name:'Ocean Blue',   accent:'#1d7a8c', bg:'#f2f8fa'},
-  {id:'honey', name:'Honey Gold',   accent:'#b45309', bg:'#fdf8ed'},
+  {id:'',        name:'Cinnamon',    accent:'#b85c2c', bg:'#faf8f4'},
+  {id:'paprika', name:'Paprika',     accent:'#ae2b26', bg:'#fdf6ea'},
+  {id:'honey',   name:'Honey',       accent:'#b45309', bg:'#fdf8ed'},
+  {id:'green',   name:'Basil',       accent:'#2b8a3e', bg:'#ffffff'},
+  {id:'pink',    name:'Dragonfruit', accent:'#d6336c', bg:'#f4edfa'},
+  {id:'ocean',   name:'Sea Salt',    accent:'#1d7a8c', bg:'#f2f8fa'},
 ];
 function renderThemeGrid(){
   let cur=''; try{cur=localStorage.getItem('dp-theme')||'';}catch(e){}
