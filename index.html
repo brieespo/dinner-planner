@@ -312,16 +312,24 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .eb-r-opt:hover{border-color:var(--accent);background:var(--accent-light)}
 .eb-r-opt-name{font-size:.79rem;font-weight:600;line-height:1.25}
 .eb-r-opt-src{font-size:.66rem;color:var(--muted)}
+.print-only{display:none!important}
 @media print{
-  header{display:none}
-  .setup,.btn-swap,.btn-extra,.btn-extra-rm,.modal-bg{display:none!important}
-  .extras-header .btn-ghost,.extras-bar{display:none!important}
-  #shared-box{display:none!important}
-  .day-sel{border:none;font-weight:700;background:transparent;pointer-events:none}
+  @page{margin:1.4cm}
   body{background:#fff}
-  .box,.meal-card{box-shadow:none;break-inside:avoid}
-  .plan-grid{page-break-after:always}
+  header,#setup-area,#starter-banner,.extras-header,.extras-bar,#shared-box,.modal-bg,.rd-modal-bg,#db-section,#community-section,#sm-section,.btn-ghost,.btn-swap,.btn-fav,.btn-extra,.btn-extra-rm,.card-foot{display:none!important}
+  #home-section{display:block!important}
+  main{max-width:none;padding:0}
+  .print-only{display:block!important}
+  .print-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.7rem;margin-bottom:.1rem}
+  .print-date{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:.95rem;color:#888;margin-bottom:1.1rem}
+  .plan-grid{grid-template-columns:repeat(2,1fr);gap:.6rem;margin-bottom:0;page-break-after:always}
+  .meal-card{box-shadow:none;border:1px solid #ddd;border-radius:10px;padding:.75rem .9rem;animation:none;break-inside:avoid;gap:.3rem}
+  .meal-card:hover{transform:none;box-shadow:none}
+  .card-name{font-size:1rem}
+  .box{border:none;box-shadow:none;padding:0;margin:0;border-radius:0}
+  .g-grid{grid-template-columns:repeat(3,1fr);gap:1rem}
   #grocery-out .g-item input{display:none}
+  #grocery-out .g-item::before{content:"☐";color:#999;flex-shrink:0}
 }
 #auth-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 12%,#f9efe4,var(--bg) 65%);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
 #auth-overlay.hidden{display:none}
@@ -444,6 +452,10 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
   </div>
 
   <div id="plan-section" class="hidden">
+    <div class="print-only">
+      <div class="print-title">🍽 This Week's Dinner Plan</div>
+      <div class="print-date" id="print-date"></div>
+    </div>
     <div class="extras-header">
       <div class="section-title" style="margin-bottom:0">📅 This Week's Plan</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
@@ -2131,6 +2143,7 @@ function renderAll(){
   renderCards(); renderShared(); renderGrocery();
   document.getElementById('plan-section').classList.remove('hidden');
   document.getElementById('setup-area').classList.add('compact');
+  document.getElementById('print-date').textContent = 'Week of ' + new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
 }
 
 // ---- MODAL ----
