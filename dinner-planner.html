@@ -413,6 +413,9 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
     <div class="auth-btn-row">
       <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
     </div>
+    <div style="margin-top:.6rem">
+      <button class="btn btn-ghost" style="width:100%" onclick="authGuest()">👀 Just browsing? Continue as Guest</button>
+    </div>
     <div class="auth-err" id="auth-err"></div>
     <div class="auth-toggle">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -1540,12 +1543,27 @@ function loadRememberedEmail(){
   if(saved){ document.getElementById('auth-email').value=saved; document.getElementById('auth-remember').checked=true; }
 }
 
-async function doSignOut(){ await sb.auth.signOut(); }
+async function doSignOut(){
+  if(_guestMode){ location.reload(); return; }
+  await sb.auth.signOut();
+}
+
+function authGuest(){
+  _guestMode=true;
+  _currentUser={id:'guest',email:''};
+  rebuildTagUI();
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('user-info').style.display='block';
+  updateUserInfo();
+  document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
+  document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+}
 
 let _saveTimer = null;
 let _currentUser = null;
+let _guestMode = false;
 async function _doSave(){
-  if(!_currentUser) return;
+  if(!_currentUser || _guestMode) return;
   try{
     await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:{...DAY_RULES,_savedMenus:SAVED_MENUS},display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
     // Sync originals to community (exclude copies saved from other users)
@@ -1662,7 +1680,7 @@ async function loadStarterRecipes(){
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session && event==='SIGNED_IN') await handleAuthSession(session);
-  if(!session){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
+  if(!session && !_guestMode){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
 });
 
 // ---- COMMUNITY ----
@@ -1733,6 +1751,7 @@ function saveToCollection(key){
 }
 
 async function _deleteFromPublic(recipeId){
+  if(_guestMode) return;
   if(!_currentUser) return;
   try{ await sb.from('public_recipes').delete().eq('user_id',_currentUser.id).eq('recipe_id',recipeId); }catch(e){ console.error(e); }
 }
@@ -1755,8 +1774,8 @@ function saveDisplayName(){
 
 function updateUserInfo(){
   if(!_currentUser) return;
-  document.getElementById('user-name').textContent=_displayName||_currentUser.email.split('@')[0];
-  document.getElementById('user-email').textContent=_currentUser.email;
+  document.getElementById('user-name').textContent=_guestMode?'Guest':(_displayName||_currentUser.email.split('@')[0]);
+  document.getElementById('user-email').textContent=_guestMode?'just browsing':_currentUser.email;
 }
 
 // ---- MORE MENU ----
