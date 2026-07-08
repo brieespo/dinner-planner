@@ -306,6 +306,12 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .ev-add-card{border:2px dashed var(--border);background:transparent;align-items:center;justify-content:center;color:var(--muted);font-weight:600;font-family:inherit;font-size:.9rem;gap:.25rem;min-height:130px;box-shadow:none}
 .ev-add-card:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-light);box-shadow:none}
 .ev-add-plus{font-size:1.9rem;line-height:1}
+.ev-grip{cursor:grab;color:var(--border);font-size:.95rem;user-select:none;margin-right:.3rem}
+.meal-card:hover .ev-grip{color:var(--muted)}
+.ev-x{background:none;border:none;color:var(--muted);opacity:.5;cursor:pointer;font-size:.85rem;padding:0 .15rem;border-radius:3px;flex-shrink:0}
+.ev-x:hover{opacity:1;color:#c0392b}
+.meal-card.dragging{opacity:.35}
+.meal-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2.5px var(--accent-light)}
 .md-ev-custom:hover{transform:none;border-color:var(--border);box-shadow:0 1px 2px rgba(44,40,37,.04),0 4px 12px rgba(44,40,37,.05)}
 .eb-item-move{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.1rem .2rem;border-radius:3px;flex-shrink:0}
 .eb-item-move:hover{color:var(--accent);background:var(--accent-light)}
@@ -2502,16 +2508,48 @@ function renderEventPage(){
   document.getElementById('ed-title').textContent='🎉 '+m.name;
   document.getElementById('ed-date').textContent='Saved '+m.savedAt;
   const items=m.items||[];
-  const cards=items.map(it=>{
+  const cards=items.map((it,i)=>{
     const r=it.recipeId?R.find(x=>x.id===it.recipeId):null;
-    return `<div class="meal-card${r?'':' md-ev-custom'}"${r?` onclick="openRecipeDetail(${r.id})" title="View full recipe"`:''}>
-      <div class="card-day">${it.label||'Dish'}</div>
+    return `<div class="meal-card${r?'':' md-ev-custom'}" draggable="true"
+      ondragstart="evDragStart(event,${i})" ondragover="evDragOver(event)" ondragleave="evDragLeave(event)" ondrop="evDrop(event,${i})" ondragend="evDragEnd()"
+      ${r?` onclick="openRecipeDetail(${r.id})" title="View full recipe"`:''}>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.3rem">
+        <div class="card-day"><span class="ev-grip" title="Drag to reorder">⠿</span>${it.label||'Dish'}</div>
+        <button class="ev-x" onclick="event.stopPropagation();removeEvItem(${i})" title="Remove from menu">✕</button>
+      </div>
       <div class="card-name" style="cursor:inherit">${it.customName||it.recipeName||'—'}</div>
       ${r?`<div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>`:'<div class="card-source" style="font-style:italic">One-off dish</div>'}
     </div>`;
   });
   cards.push(`<button class="meal-card ev-add-card" onclick="openEvAdd()"><span class="ev-add-plus">＋</span><span>Add a dish</span></button>`);
   document.getElementById('ed-body').innerHTML=`<div class="plan-grid">${cards.join('')}</div>`;
+}
+
+let _evDragIdx=null;
+function evDragStart(e,i){ _evDragIdx=i; e.dataTransfer.effectAllowed='move'; e.currentTarget.classList.add('dragging'); }
+function evDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
+function evDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function evDrop(e,i){
+  e.preventDefault();
+  const m=SAVED_MENUS.find(x=>x.id===_detailMenuId);
+  if(!m || _evDragIdx===null || _evDragIdx===i){ evDragEnd(); return; }
+  const [moved]=m.items.splice(_evDragIdx,1);
+  m.items.splice(i,0,moved);
+  saveMenusToStorage();
+  _evDragIdx=null;
+  renderEventPage();
+}
+function evDragEnd(){
+  _evDragIdx=null;
+  document.querySelectorAll('#ed-body .dragging, #ed-body .drag-over').forEach(el=>el.classList.remove('dragging','drag-over'));
+}
+function removeEvItem(i){
+  const m=SAVED_MENUS.find(x=>x.id===_detailMenuId); if(!m||!m.items[i]) return;
+  const it=m.items[i];
+  if(!confirm(`Remove "${it.customName||it.recipeName}" from this menu?`)) return;
+  m.items.splice(i,1);
+  saveMenusToStorage();
+  renderEventPage();
 }
 
 function openEvAdd(){
