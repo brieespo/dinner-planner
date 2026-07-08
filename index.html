@@ -1962,17 +1962,48 @@ const SHARED_BLOCKLIST = new Set([
   'cauliflower','broccoli','gnocchi',
 ]);
 
+// Perishable shares matter more than shelf-stable ones: produce spoils, parmesan keeps.
+const SHARE_WEIGHT = {produce:2, protein:1.5, dairy:1.5, frozen:1};
 function scoreSet(recipes) {
-  const counts = {};
+  const counts = {}, cats = {};
   for (const r of recipes) {
     const seen = new Set();
     for (const i of r.ings) {
       if (!i.p && !seen.has(i.n) && !SHARED_BLOCKLIST.has(i.n.toLowerCase())) {
-        counts[i.n] = (counts[i.n]||0)+1; seen.add(i.n);
+        counts[i.n] = (counts[i.n]||0)+1; cats[i.n]=i.c; seen.add(i.n);
       }
     }
   }
-  return Object.values(counts).filter(v=>v>1).reduce((a,b)=>a+(b-1),0);
+  // First reuse of an ingredient earns full weight, further reuses half —
+  // spreads overlap across ingredients instead of piling onto one.
+  let s = 0;
+  for (const n in counts) {
+    const c = counts[n];
+    if (c > 1) { const w = SHARE_WEIGHT[cats[n]] ?? .5; s += w + w*.5*(c-2); }
+  }
+  return s;
+}
+
+const PROTEIN_GROUPS=[
+  ['chicken','turkey'],
+  ['beef','steak','ground meat'],
+  ['pork','sausage','bacon','ham','pancetta'],
+  ['lamb'],
+  ['salmon','tuna','shrimp','fish','cod','halibut','anchov','scallop'],
+  ['chickpea','lentil','bean','tofu','tempeh'],
+];
+function proteinOf(r){
+  const hay=(r.name+' '+r.ings.map(i=>i.n).join(' ')).toLowerCase();
+  for(let g=0;g<PROTEIN_GROUPS.length;g++) if(PROTEIN_GROUPS[g].some(k=>hay.includes(k))) return g;
+  return -1;
+}
+
+function getRecentPlans(){ try{return JSON.parse(localStorage.getItem('dp-recent')||'[]');}catch(e){return [];} }
+function recordRecentPlan(){
+  const ids=plan.map(p=>p.r?.id).filter(Boolean);
+  if(!ids.length) return;
+  const rec=getRecentPlans(); rec.unshift(ids);
+  try{localStorage.setItem('dp-recent',JSON.stringify(rec.slice(0,2)));}catch(e){}
 }
 
 function suggest(n) {
@@ -1986,10 +2017,21 @@ function suggest(n) {
     const seasonal = all.filter(r => isPreferredSeason(r));
     return seasonal.length >= 1 ? seasonal : all; // prefer seasonal, fall back if pool too small
   };
+  const recent = getRecentPlans();
+  const recentPenalty = r => recent[0]?.includes(r.id) ? 3 : recent[1]?.includes(r.id) ? 1.5 : 0;
+  const candidateScore = (r, existing) => {
+    let s = scoreSet([...existing, r]) - recentPenalty(r);
+    // third-or-more of the same protein in one week reads as repetitive
+    const p = proteinOf(r);
+    if (p > -1 && existing.filter(x=>proteinOf(x)===p).length >= 2) s -= 4;
+    return s;
+  };
   const bestGreedy = (pool, existing) => {
-    // add random jitter so ingredient-overlap score doesn't always dominate
-    const scored = pool.map(r=>({r, s:scoreSet([...existing,r]) + Math.random()*4}));
-    return scored.reduce((b,x)=>x.s>b.s?x:b).r;
+    // sample from the top 3 candidates so re-rolls stay varied
+    const scored = pool.map(r=>({r, s:candidateScore(r, existing)}));
+    scored.sort((a,b)=>b.s-a.s);
+    const top = scored.slice(0, 3);
+    return top[Math.floor(Math.random()*top.length)].r;
   };
 
   // Phase 1: fill constrained days first (so ingredient overlap is seeded around them)
@@ -2005,11 +2047,11 @@ function suggest(n) {
   const freeDays = days.filter(d=>!hasRules(d));
   if(result.length===0 && freeDays.length>=2){
     const pool=fp(null);
-    // score all pairs with random jitter so seed pair varies each time
+    // score all pairs, then sample from the top 3 so the seed pair varies each time
     const pairs=[];
-    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++) pairs.push({i,j,s:scoreSet([pool[i],pool[j]])+Math.random()*4});
+    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++) pairs.push({i,j,s:scoreSet([pool[i],pool[j]])-recentPenalty(pool[i])-recentPenalty(pool[j])});
     pairs.sort((a,b)=>b.s-a.s);
-    const pick=pairs[0];
+    const pick=pairs[Math.floor(Math.random()*Math.min(3,pairs.length))];
     const bi=pick.i, bj=pick.j;
     result.push({r:pool[bi],day:freeDays[0]},{r:pool[bj],day:freeDays[1]});
     used.add(pool[bi].id); used.add(pool[bj].id);
@@ -2304,7 +2346,7 @@ function bgClick(e){if(e.target===document.getElementById('modal'))closeModal();
 
 // ---- CONTROLS ----
 function setDay(i,d){plan[i].day=d;}
-function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));renderAll();}
+function handleSuggest(){plan=suggest(numMeals).map(p=>({...p,side:undefined,dessert:undefined}));recordRecentPlan();renderAll();}
 function handleBlankPlan(){plan=DAYS.slice(0,numMeals).map(day=>({day,r:null}));renderAll();}
 function suggestMain(i){
   const used=new Set(plan.map(p=>p.r?.id).filter(Boolean));
