@@ -257,6 +257,10 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .sm-card:hover .sm-del{opacity:1}
 .sm-del:hover{color:#c0392b;background:#fde8e4}
 .sm-empty{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem;line-height:1.8}
+.empty-state{grid-column:1/-1;text-align:center;padding:3rem 1rem;animation:riseIn .35s ease both}
+.es-emoji{font-size:3rem;opacity:.55;display:block;margin-bottom:.6rem}
+.es-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.3rem;color:var(--text);margin-bottom:.3rem}
+.es-hint{font-size:.88rem;color:var(--muted);line-height:1.6}
 /* Save-week modal */
 .save-week-modal{background:#fff;border-radius:12px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 /* Menu detail modal */
@@ -1112,7 +1116,9 @@ function renderDB(){
   });
   const filtered = dbActiveType==='all' ? recipes : recipes.filter(r=>(r.type||'main')===dbActiveType);
   document.getElementById('db-count').textContent = `${filtered.length} recipe${filtered.length!==1?'s':''}`;
-  document.getElementById('db-grid').innerHTML = filtered.map(dbCardHTML).join('');
+  document.getElementById('db-grid').innerHTML = filtered.length
+    ? filtered.map(dbCardHTML).join('')
+    : '<div class="empty-state"><span class="es-emoji">🍳</span><div class="es-hint">No recipes match — try clearing the search or filters.</div></div>';
 }
 
 function deleteRecipe(id){
@@ -1528,7 +1534,7 @@ async function renderCommunity(){
     const shuffled=shuffle(data||[]);
     grid.innerHTML=shuffled.length
       ? shuffled.map(communityCardHTML).join('')
-      : '<div style="color:var(--muted);font-size:.9rem;padding:2rem;text-align:center">No community recipes yet!</div>';
+      : '<div style="color:var(--muted);font-size:.9rem;padding:2rem;text-align:center">No community recipes found — try reloading the page.</div>';
   }catch(e){
     grid.innerHTML='<div style="color:#c0392b;font-size:.9rem;padding:1rem">Could not load recipes. Please try again.</div>';
     console.error(e);
@@ -2189,9 +2195,9 @@ function renderSavedMenus(){
   const menus = SAVED_MENUS.filter(m=>m.type===smCurrentTab);
   if(!menus.length){
     const msg = smCurrentTab==='weekly'
-      ? 'No saved weekly menus yet.<br><small>Suggest a week, then click <strong>💾 Save This Week</strong>.</small>'
-      : 'No event menus yet.<br><small>Click <strong>+ New Event Menu</strong> to create one.</small>';
-    grid.innerHTML=`<div class="sm-empty">${msg}</div>`; return;
+      ? '<span class="es-emoji">📋</span><div class="es-title">No saved menus yet</div><div class="es-hint">Plan a week you love, then hit <strong>💾 Save This Week</strong> to keep it.</div>'
+      : '<span class="es-emoji">🎉</span><div class="es-title">No event menus yet</div><div class="es-hint">Click <strong>+ New Event Menu</strong> to create one.</div>';
+    grid.innerHTML=`<div class="empty-state">${msg}</div>`; return;
   }
   grid.innerHTML = menus.map(m=>{
     if(m.type==='weekly'){
