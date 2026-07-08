@@ -295,7 +295,15 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 /* Save-week modal */
 .save-week-modal{background:#fff;border-radius:12px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 /* Menu detail modal */
-.menu-detail-modal{background:#fff;border-radius:12px;width:100%;max-width:620px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.menu-detail-modal{background:#fff;border-radius:16px;width:100%;max-width:620px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.menu-detail-modal.wide{max-width:880px}
+.md-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
+.md-ev-card{animation:none}
+.md-ev-custom{border-style:dashed;cursor:default!important}
+.md-ev-custom:hover{transform:none;border-color:var(--border);box-shadow:0 1px 2px rgba(44,40,37,.04),0 4px 12px rgba(44,40,37,.05)}
+.eb-item-move{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.1rem .2rem;border-radius:3px;flex-shrink:0}
+.eb-item-move:hover{color:var(--accent);background:var(--accent-light)}
+.eb-item-move:disabled{opacity:.25;cursor:default;background:none;color:var(--muted)}
 .md-day-row{display:flex;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.88rem;align-items:flex-start}
 .md-day-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:72px;padding-top:.12rem;flex-shrink:0}
 .md-day-name{font-weight:600;line-height:1.35}
@@ -2377,8 +2385,16 @@ function openMenuDetail(id){
     }).join('');
   } else {
     const items=m.items||[];
-    body.innerHTML=items.length?items.map(it=>`<div class="md-item-row"><div class="md-item-label">${it.label||''}</div><div class="md-item-name">${it.customName||it.recipeName||'—'}</div></div>`).join(''):'<div class="sm-empty">No items in this menu.</div>';
+    body.innerHTML=items.length?`<div class="md-card-grid">${items.map(it=>{
+      const r=it.recipeId?R.find(x=>x.id===it.recipeId):null;
+      return `<div class="meal-card md-ev-card${r?'':' md-ev-custom'}"${r?` onclick="openRecipeDetail(${r.id})" title="View full recipe"`:''}>
+        <div class="card-day">${it.label||'Dish'}</div>
+        <div class="card-name" style="cursor:inherit">${it.customName||it.recipeName||'—'}</div>
+        ${r?`<div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>`:'<div class="card-source" style="font-style:italic">One-off dish</div>'}
+      </div>`;
+    }).join('')}</div>`:'<div class="sm-empty">No items in this menu.</div>';
   }
+  document.querySelector('#menu-detail-bg .menu-detail-modal').classList.toggle('wide', m.type==='event');
   document.getElementById('menu-detail-bg').classList.add('open');
 }
 function closeMenuDetail(){ document.getElementById('menu-detail-bg').classList.remove('open'); _detailMenuId=null; }
@@ -2444,7 +2460,13 @@ function closeEventBuilder(){ document.getElementById('event-builder-bg').classL
 function renderEBItems(){
   const el=document.getElementById('eb-items');
   if(!_ebItems.length){ el.innerHTML='<div style="font-size:.82rem;color:var(--muted);padding:.3rem 0">No items yet — add recipes below.</div>'; return; }
-  el.innerHTML=_ebItems.map((it,i)=>`<div class="eb-item">${it.label?`<span class="eb-item-label">${it.label}</span>`:''}<span class="eb-item-name">${it.customName||it.recipeName||'—'}</span><button class="eb-item-del" onclick="removeEBItem(${i})" title="Remove">✕</button></div>`).join('');
+  el.innerHTML=_ebItems.map((it,i)=>`<div class="eb-item">${it.label?`<span class="eb-item-label">${it.label}</span>`:''}<span class="eb-item-name">${it.customName||it.recipeName||'—'}</span><button class="eb-item-move" onclick="moveEBItem(${i},-1)" ${i===0?'disabled':''} title="Move up">↑</button><button class="eb-item-move" onclick="moveEBItem(${i},1)" ${i===_ebItems.length-1?'disabled':''} title="Move down">↓</button><button class="eb-item-del" onclick="removeEBItem(${i})" title="Remove">✕</button></div>`).join('');
+}
+function moveEBItem(i,dir){
+  const j=i+dir;
+  if(j<0||j>=_ebItems.length) return;
+  [_ebItems[i],_ebItems[j]]=[_ebItems[j],_ebItems[i]];
+  renderEBItems();
 }
 function renderEBPicker(){
   const q=(document.getElementById('eb-search').value||'').toLowerCase();
