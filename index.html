@@ -303,6 +303,9 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .md-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
 .md-ev-card{animation:none}
 .md-ev-custom{border-style:dashed;cursor:default!important}
+.ev-add-card{border:2px dashed var(--border);background:transparent;align-items:center;justify-content:center;color:var(--muted);font-weight:600;font-family:inherit;font-size:.9rem;gap:.25rem;min-height:130px;box-shadow:none}
+.ev-add-card:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-light);box-shadow:none}
+.ev-add-plus{font-size:1.9rem;line-height:1}
 .md-ev-custom:hover{transform:none;border-color:var(--border);box-shadow:0 1px 2px rgba(44,40,37,.04),0 4px 12px rgba(44,40,37,.05)}
 .eb-item-move{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.1rem .2rem;border-radius:3px;flex-shrink:0}
 .eb-item-move:hover{color:var(--accent);background:var(--accent-light)}
@@ -755,6 +758,34 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 </div>
 
 <!-- Help Modal -->
+<div class="modal-bg" id="ev-add-bg" onclick="if(event.target===this)closeEvAdd()">
+  <div class="add-modal" style="max-width:520px">
+    <div class="modal-head">
+      <strong>Add a dish</strong>
+      <span style="flex:1"></span>
+      <button class="modal-x" onclick="closeEvAdd()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">Label (optional)</label>
+        <input class="form-input" id="ev-add-label" type="text" placeholder="Starter, Main, Side, Dessert…">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Choose from All Recipes</label>
+        <input class="form-input" id="ev-add-search" type="text" placeholder="Search recipes…" oninput="renderEvAddPicker()">
+        <div class="eb-recipe-picker" id="ev-add-picker" style="margin-top:.5rem"></div>
+      </div>
+      <div style="border-top:1px dashed var(--border);padding-top:.75rem">
+        <label class="form-label">Or type anything</label>
+        <div style="display:flex;gap:.5rem">
+          <input class="form-input" id="ev-add-custom" type="text" placeholder="e.g. Birthday cake" style="flex:1" onkeydown="if(event.key==='Enter')addEvCustom()">
+          <button class="btn btn-accent btn-sm" onclick="addEvCustom()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="theme-modal" onclick="if(event.target===this)closeThemeModal()">
   <div class="add-modal" style="max-width:400px">
     <div class="modal-head">
@@ -2471,14 +2502,49 @@ function renderEventPage(){
   document.getElementById('ed-title').textContent='🎉 '+m.name;
   document.getElementById('ed-date').textContent='Saved '+m.savedAt;
   const items=m.items||[];
-  document.getElementById('ed-body').innerHTML=items.length?`<div class="plan-grid">${items.map(it=>{
+  const cards=items.map(it=>{
     const r=it.recipeId?R.find(x=>x.id===it.recipeId):null;
     return `<div class="meal-card${r?'':' md-ev-custom'}"${r?` onclick="openRecipeDetail(${r.id})" title="View full recipe"`:''}>
       <div class="card-day">${it.label||'Dish'}</div>
       <div class="card-name" style="cursor:inherit">${it.customName||it.recipeName||'—'}</div>
       ${r?`<div class="card-source">${r.src}${r.page?' · '+r.page:''}</div>`:'<div class="card-source" style="font-style:italic">One-off dish</div>'}
     </div>`;
-  }).join('')}</div>`:'<div class="sm-empty">No items in this menu.</div>';
+  });
+  cards.push(`<button class="meal-card ev-add-card" onclick="openEvAdd()"><span class="ev-add-plus">＋</span><span>Add a dish</span></button>`);
+  document.getElementById('ed-body').innerHTML=`<div class="plan-grid">${cards.join('')}</div>`;
+}
+
+function openEvAdd(){
+  if(!_detailMenuId) return;
+  document.getElementById('ev-add-label').value='';
+  document.getElementById('ev-add-search').value='';
+  document.getElementById('ev-add-custom').value='';
+  renderEvAddPicker();
+  document.getElementById('ev-add-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('ev-add-search').focus(),80);
+}
+function closeEvAdd(){ document.getElementById('ev-add-bg').classList.remove('open'); }
+function renderEvAddPicker(){
+  const q=(document.getElementById('ev-add-search').value||'').toLowerCase();
+  let opts=R.filter(r=>!q||r.name.toLowerCase().includes(q)||r.src.toLowerCase().includes(q));
+  if(opts.length>48) opts=opts.slice(0,48);
+  document.getElementById('ev-add-picker').innerHTML=opts.map(r=>`<div class="eb-r-opt" onclick="addEvRecipe(${r.id})"><div class="eb-r-opt-name">${r.name}</div><div class="eb-r-opt-src">${r.src}</div></div>`).join('');
+}
+function addEvRecipe(id){
+  const m=SAVED_MENUS.find(x=>x.id===_detailMenuId); if(!m) return;
+  const r=R.find(x=>x.id===id); if(!r) return;
+  (m.items=m.items||[]).push({recipeId:r.id,recipeName:r.name,label:document.getElementById('ev-add-label').value.trim()});
+  saveMenusToStorage();
+  renderEventPage();
+  closeEvAdd();
+}
+function addEvCustom(){
+  const m=SAVED_MENUS.find(x=>x.id===_detailMenuId); if(!m) return;
+  const name=document.getElementById('ev-add-custom').value.trim(); if(!name) return;
+  (m.items=m.items||[]).push({customName:name,label:document.getElementById('ev-add-label').value.trim()});
+  saveMenusToStorage();
+  renderEventPage();
+  closeEvAdd();
 }
 function backToSavedMenus(){ showPage('sm'); setSMTab(smCurrentTab); }
 function deleteEventFromPage(){
