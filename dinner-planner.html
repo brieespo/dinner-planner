@@ -367,7 +367,11 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .auth-err.ok{color:var(--quick)}
 .auth-toggle{text-align:center;margin-top:1rem;font-size:.83rem;color:var(--muted)}
 .auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:underline}
-#user-info{font-size:.8rem;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:.6rem}
+#user-info{text-align:right;color:#fff}
+#user-info .ui-welcome{font-family:'DM Serif Display',Georgia,serif;font-size:1.05rem;letter-spacing:.01em}
+#user-info .ui-sub{font-size:.72rem;opacity:.85}
+#user-info .ui-sub a{color:#fff;text-decoration:underline;cursor:pointer}
+#user-info .ui-sub a:hover{opacity:.8}
 #starter-banner{background:var(--accent-light);border:1.5px solid var(--sand);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 #starter-banner p{font-size:.9rem;color:var(--text);margin:0}
 #starter-banner p span{color:var(--muted);font-size:.82rem;display:block;margin-top:.2rem}
@@ -407,7 +411,10 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 <header>
   <div style="cursor:pointer" onclick="goHome()"><h1>🍽 Dinner Planner</h1><p>Smart weekly meal planning</p></div>
   <div class="print-hide" style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem">
-    <div id="user-info" style="display:none;font-size:.72rem;opacity:.75;letter-spacing:.01em"><span id="user-email"></span></div>
+    <div id="user-info" style="display:none">
+      <div class="ui-welcome">Welcome, <span id="user-name"></span>!</div>
+      <div class="ui-sub"><span id="user-email"></span> (<a onclick="doSignOut()">sign out</a>)</div>
+    </div>
     <div style="display:flex;gap:.6rem;align-items:center">
       <button class="btn btn-outline" id="home-btn" onclick="goHome()">Meal Plan Generator</button>
       <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">All Recipes</button>
@@ -1468,7 +1475,7 @@ async function handleAuthSession(session){
   rebuildTagUI();
   document.getElementById('auth-overlay').classList.add('hidden');
   document.getElementById('user-info').style.display='block';
-  document.getElementById('user-email').textContent=session.user.email;
+  updateUserInfo();
   document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
   document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
 }
@@ -1705,6 +1712,13 @@ function saveDisplayName(){
   _displayName=name;
   saveToStorage();
   closeDisplayNameModal();
+  updateUserInfo();
+}
+
+function updateUserInfo(){
+  if(!_currentUser) return;
+  document.getElementById('user-name').textContent=_displayName||_currentUser.email.split('@')[0];
+  document.getElementById('user-email').textContent=_currentUser.email;
 }
 
 // ---- MORE MENU ----
