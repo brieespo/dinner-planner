@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
 header{background:var(--accent);color:#fff;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(160,76,32,.25)}
 header h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.18)}
 header p{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:.9rem;opacity:.9;letter-spacing:.02em}
@@ -317,17 +317,19 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
   .plan-grid{page-break-after:always}
   #grocery-out .g-item input{display:none}
 }
-#auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+#auth-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 12%,#f9efe4,var(--bg) 65%);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
 #auth-overlay.hidden{display:none}
-.auth-box{background:var(--card);border-radius:16px;padding:2rem;width:100%;max-width:380px;box-shadow:0 2px 6px rgba(44,40,37,.05),0 12px 36px rgba(44,40,37,.12)}
-.auth-box h2{font-family:'DM Serif Display',Georgia,serif;font-size:1.6rem;font-weight:400;margin-bottom:.3rem;color:var(--accent);text-align:center}
-.auth-box .auth-sub{font-size:.83rem;color:var(--muted);text-align:center;margin-bottom:1.5rem}
-.auth-field{margin-bottom:.85rem}
+.auth-box{background:var(--card);border-radius:20px;padding:2.5rem 2.25rem;width:100%;max-width:400px;box-shadow:0 2px 6px rgba(44,40,37,.05),0 16px 44px rgba(44,40,37,.13);animation:riseIn .4s ease both}
+.auth-logo{font-size:2.6rem;text-align:center;margin-bottom:.35rem;line-height:1}
+.auth-box h2{font-family:'DM Serif Display',Georgia,serif;font-size:1.9rem;font-weight:400;margin-bottom:.15rem;color:var(--accent);text-align:center}
+.auth-tagline{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:.95rem;color:var(--accent);opacity:.7;text-align:center;margin-bottom:1.2rem}
+.auth-box .auth-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.auth-field{margin-bottom:.9rem}
 .auth-field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.3rem;color:var(--muted)}
-.auth-field input{width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;background:var(--bg)}
-.auth-field input:focus{outline:none;border-color:var(--accent)}
+.auth-field input{width:100%;padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;background:#fff;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+.auth-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
 .auth-btn-row{margin-top:1.25rem}
-.auth-btn-row button{width:100%}
+.auth-btn-row button{width:100%;padding:.65rem 1.1rem;font-size:.925rem}
 .auth-err{font-size:.82rem;margin-top:.75rem;min-height:1.1em;text-align:center}
 .auth-err.err{color:#c0392b}
 .auth-err.ok{color:var(--quick)}
@@ -343,7 +345,9 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 <body>
 <div id="auth-overlay">
   <div class="auth-box">
-    <h2>🍽 Dinner Planner</h2>
+    <div class="auth-logo">🍽</div>
+    <h2>Dinner Planner</h2>
+    <p class="auth-tagline">Smart weekly meal planning</p>
     <p class="auth-sub" id="auth-subtitle">Sign in to access your recipes</p>
     <div class="auth-field">
       <label>Email</label>
