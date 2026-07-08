@@ -38,6 +38,7 @@ header p{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-siz
 .btn:hover{opacity:.88}
 .btn-white{background:#fff;color:var(--accent)}
 .btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+.btn-outline.active{background:#fff;color:var(--accent);border-color:#fff}
 .btn-accent{background:var(--accent);color:#fff}
 .btn-swap{background:var(--accent-light);color:var(--accent);border:none;padding:.28rem .7rem;font-size:.78rem;border-radius:4px;font-weight:600;cursor:pointer}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.3rem .8rem;font-size:.8rem;border-radius:5px;cursor:pointer}
@@ -416,27 +417,25 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
       <div class="ui-sub"><span id="user-email"></span> (<a onclick="doSignOut()">sign out</a>)</div>
     </div>
     <div style="display:flex;gap:.6rem;align-items:center">
-      <button class="btn btn-outline" id="home-btn" onclick="goHome()">Meal Plan Generator</button>
+      <button class="btn btn-outline active" id="home-btn" onclick="goHome()">Meal Plan Generator</button>
       <button class="btn btn-outline" id="db-btn" onclick="toggleDB()">All Recipes</button>
-      <button class="btn btn-outline" onclick="openAddModal()">+ Add Recipe</button>
       <button class="btn btn-outline" id="community-btn" onclick="toggleCommunity()">Community</button>
       <button class="btn btn-outline" id="sm-btn" onclick="toggleSavedMenus()">Saved Menus</button>
-      <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-white" onclick="openAddModal()">+ Add Recipe</button>
       <div class="more-menu" id="more-menu">
         <button class="btn btn-outline" onclick="toggleMoreMenu()">⋯ More</button>
         <div class="more-menu-panel" id="more-menu-panel">
           <button class="more-menu-item" onclick="closeMoreMenu();openRulesModal()">📋 Set Daily Rules</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openManageTagsModal()">🏷 Add New Tags</button>
           <div class="more-menu-divider"></div>
-          <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
-          <div class="more-menu-divider"></div>
-          <button class="more-menu-item" onclick="closeMoreMenu();syncNewRecipes()">🔄 Sync New Recipes</button>
-          <button class="more-menu-item" onclick="closeMoreMenu();updateRecipes()">⬆ Update Recipes</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openThemeModal()">🎨 Color Theme</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openDisplayNameModal()">👤 Set Display Name</button>
-          <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
           <div class="more-menu-divider"></div>
-          <button class="more-menu-item" onclick="closeMoreMenu();doSignOut()" style="color:#c0392b">🚪 Sign Out</button>
+          <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
+          <button class="more-menu-item" onclick="closeMoreMenu();syncNewRecipes()">🔄 Sync New Recipes</button>
+          <button class="more-menu-item" onclick="closeMoreMenu();updateRecipes()">⬆ Update Recipes</button>
+          <div class="more-menu-divider"></div>
+          <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
         </div>
       </div>
     </div>
@@ -490,6 +489,7 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
         <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
         <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
         <button class="btn-ghost" id="save-week-btn" onclick="saveCurrentWeek()">💾 Save This Week</button>
+        <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
       </div>
     </div>
     <div id="extras-bar" class="hidden extras-bar">
@@ -1172,16 +1172,15 @@ function showPage(page){
   document.getElementById('community-section').classList.toggle('hidden', !communityVisible);
   document.getElementById('sm-section').classList.toggle('hidden', !savedMenusVisible);
   document.getElementById('event-section').classList.toggle('hidden', page!=='event');
-  document.getElementById('db-btn').textContent = dbVisible ? '✕ Close' : 'All Recipes';
-  document.getElementById('community-btn').textContent = communityVisible ? '✕ Close' : 'Community';
-  document.getElementById('sm-btn').textContent = savedMenusVisible ? '✕ Close' : 'Saved Menus';
+  const activeBtn = {home:'home-btn', db:'db-btn', community:'community-btn', sm:'sm-btn', event:'sm-btn'}[page];
+  ['home-btn','db-btn','community-btn','sm-btn'].forEach(id=>document.getElementById(id).classList.toggle('active', id===activeBtn));
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function goHome(){ showPage('home'); }
 
 function toggleDB(){
-  if(dbVisible){ showPage('home'); return; }
+  if(dbVisible) return;
   showPage('db');
   renderDB();
   document.getElementById('db-search').focus();
@@ -1636,7 +1635,7 @@ function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=M
 
 function toggleCommunity(){
   if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
-  if(communityVisible){ showPage('home'); return; }
+  if(communityVisible) return;
   showPage('community');
   renderCommunity();
 }
@@ -2370,7 +2369,7 @@ let _ebEditId = null;
 
 function toggleSavedMenus(){
   if(!_currentUser){ document.getElementById('auth-overlay').classList.remove('hidden'); return; }
-  if(savedMenusVisible){ showPage('home'); return; }
+  if(savedMenusVisible) return;
   showPage('sm');
   setSMTab(smCurrentTab);
 }
