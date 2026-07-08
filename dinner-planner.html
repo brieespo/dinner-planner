@@ -12,6 +12,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf8f4;--card:#fff;--accent:#b85c2c;--accent-light:#f5e8df;--sand:#e8ddd0;--text:#2c2825;--muted:#7a6e65;--border:#e0d8d0;--quick:#4a7c59;--mod:#9a6f20;--wknd:#8a3020}
+:root[data-theme="green"]{--bg:#f3faf3;--accent:#2b8a3e;--accent-light:#e4f5e7;--sand:#d8ecd8;--muted:#68796a;--border:#d3e6d3}
+:root[data-theme="pink"]{--bg:#f4edfa;--accent:#d6336c;--accent-light:#fbe4ee;--sand:#e5d5f2;--muted:#7d6e88;--border:#ddccee}
+:root[data-theme="ocean"]{--bg:#f2f8fa;--accent:#1d7a8c;--accent-light:#e0f1f5;--sand:#d7e8ed;--muted:#657e86;--border:#d2e3e8}
+:root[data-theme="honey"]{--bg:#fbf7ec;--accent:#9c6f08;--accent-light:#faf0d7;--sand:#efe3c3;--muted:#7d715a;--border:#e7dcc0}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
 header{background:var(--accent);color:#fff;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(160,76,32,.25)}
 header h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.18)}
@@ -331,7 +335,12 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
   #grocery-out .g-item input{display:none}
   #grocery-out .g-item::before{content:"☐";color:#999;flex-shrink:0}
 }
-#auth-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 12%,#f9efe4,var(--bg) 65%);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+#auth-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 12%,var(--accent-light),var(--bg) 65%);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.theme-opt{display:flex;align-items:center;gap:.7rem;width:100%;padding:.7rem .9rem;border:1.5px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:600;color:var(--text);transition:border-color .15s,background .15s;margin-bottom:.5rem}
+.theme-opt:hover{border-color:var(--accent)}
+.theme-opt.active{border-color:var(--accent);background:var(--accent-light)}
+.theme-dots{display:flex;gap:.25rem}
+.theme-dots span{width:20px;height:20px;border-radius:50%;display:inline-block}
 #auth-overlay.hidden{display:none}
 .auth-box{background:var(--card);border-radius:20px;padding:2.5rem 2.25rem;width:100%;max-width:400px;box-shadow:0 2px 6px rgba(44,40,37,.05),0 16px 44px rgba(44,40,37,.13);animation:riseIn .4s ease both}
 .auth-logo{font-size:2.6rem;text-align:center;margin-bottom:.35rem;line-height:1}
@@ -355,6 +364,7 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 #starter-banner p span{color:var(--muted);font-size:.82rem;display:block;margin-top:.2rem}
 #starter-banner.hidden{display:none}
 </style>
+<script>try{const t=localStorage.getItem('dp-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
 <div id="auth-overlay">
@@ -406,6 +416,7 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();syncNewRecipes()">🔄 Sync New Recipes</button>
           <button class="more-menu-item" onclick="closeMoreMenu();updateRecipes()">⬆ Update Recipes</button>
+          <button class="more-menu-item" onclick="closeMoreMenu();openThemeModal()">🎨 Color Theme</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openDisplayNameModal()">👤 Set Display Name</button>
           <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
           <div class="more-menu-divider"></div>
@@ -709,6 +720,17 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 </div>
 
 <!-- Help Modal -->
+<div class="modal-bg" id="theme-modal" onclick="if(event.target===this)closeThemeModal()">
+  <div class="add-modal" style="max-width:400px">
+    <div class="modal-head">
+      <strong>🎨 Color Theme</strong>
+      <span style="flex:1"></span>
+      <button class="modal-x" onclick="closeThemeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="theme-grid"></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="help-modal" onclick="if(event.target===this)closeHelpModal()">
   <div class="add-modal help-modal">
     <div class="modal-head">
@@ -1672,6 +1694,32 @@ document.addEventListener('click', e=>{
 // ---- HELP MODAL ----
 function openHelpModal(){ document.getElementById('help-modal').classList.add('open'); }
 function closeHelpModal(){ document.getElementById('help-modal').classList.remove('open'); }
+
+// ---- COLOR THEMES ----
+const THEMES=[
+  {id:'',      name:'Terracotta',   accent:'#b85c2c', bg:'#faf8f4'},
+  {id:'green', name:'Garden Green', accent:'#2b8a3e', bg:'#f3faf3'},
+  {id:'pink',  name:'Berry Pink',   accent:'#d6336c', bg:'#f7f2fb'},
+  {id:'ocean', name:'Ocean Blue',   accent:'#1d7a8c', bg:'#f2f8fa'},
+  {id:'honey', name:'Honey Gold',   accent:'#9c6f08', bg:'#fbf7ec'},
+];
+function renderThemeGrid(){
+  let cur=''; try{cur=localStorage.getItem('dp-theme')||'';}catch(e){}
+  document.getElementById('theme-grid').innerHTML=THEMES.map(t=>`
+    <button class="theme-opt${t.id===cur?' active':''}" onclick="setTheme('${t.id}')">
+      <span class="theme-dots"><span style="background:${t.accent}"></span><span style="background:${t.bg};border:1px solid var(--border)"></span></span>
+      <span>${t.name}</span>
+      ${t.id===cur?'<span style="margin-left:auto;color:var(--accent)">✓</span>':''}
+    </button>`).join('');
+}
+function setTheme(id){
+  if(id) document.documentElement.dataset.theme=id;
+  else delete document.documentElement.dataset.theme;
+  try{localStorage.setItem('dp-theme',id);}catch(e){}
+  renderThemeGrid();
+}
+function openThemeModal(){ renderThemeGrid(); document.getElementById('theme-modal').classList.add('open'); }
+function closeThemeModal(){ document.getElementById('theme-modal').classList.remove('open'); }
 
 function exportRecipes(){
   const blob = new Blob([JSON.stringify({recipes:R, tags:TAGS, rules:DAY_RULES}, null, 2)], {type:'application/json'});
