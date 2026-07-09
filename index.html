@@ -501,14 +501,15 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <button class="btn-ghost" id="breakfast-toggle" onclick="toggleBreakfast()">🌅 Add Breakfast</button>
         <button class="btn-ghost" id="lunch-toggle" onclick="toggleLunch()">☀️ Add Lunch</button>
-        <button class="btn-ghost" id="extras-toggle" onclick="toggleExtras()">🥗 Add Sides & Desserts</button>
+        <button class="btn-ghost" id="sides-toggle" onclick="toggleSides()">🥗 Add Sides</button>
+        <button class="btn-ghost" id="desserts-toggle" onclick="toggleDesserts()">🍰 Add Desserts</button>
         <button class="btn-ghost" id="save-week-btn" onclick="saveCurrentWeek()">💾 Save This Week</button>
         <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
       </div>
     </div>
     <div id="extras-bar" class="hidden extras-bar">
-      <button class="btn-ghost" onclick="suggestAllSides()">🎲 Suggest all sides</button>
-      <button class="btn-ghost" onclick="suggestAllDesserts()">🍰 Suggest all desserts</button>
+      <button class="btn-ghost" id="bar-sides-btn" onclick="suggestAllSides()">🎲 Suggest all sides</button>
+      <button class="btn-ghost" id="bar-desserts-btn" onclick="suggestAllDesserts()">🍰 Suggest all desserts</button>
       <button class="btn-ghost" onclick="clearAllExtras()">✕ Clear all</button>
     </div>
     <div class="plan-grid" id="plan-grid"></div>
@@ -1925,7 +1926,8 @@ let groceryEdits = {}; // origName → renamed string, or null (= removed)
 let groceryExtras = []; // [{id,n,c}] custom items added by user
 let groceryEditMode = false;
 let _gexId = 1;
-let showExtras = false;
+let showSides = false;
+let showDesserts = false;
 let showBreakfast = false;
 let showLunch = false;
 let currentSeason = '';
@@ -1944,12 +1946,16 @@ function isInSeason(r){ return !currentSeason || !r.seasons?.length || r.seasons
 function isPreferredSeason(r){ return currentSeason && r.seasons?.length && r.seasons.includes(currentSeason); }
 
 // ---- SIDES & DESSERTS ----
-function toggleExtras(){
-  showExtras = !showExtras;
-  document.getElementById('extras-bar').classList.toggle('hidden', !showExtras);
-  document.getElementById('extras-toggle').textContent = showExtras ? '🥗 Hide Sides & Desserts' : '🥗 Add Sides & Desserts';
+function updateExtrasUI(){
+  document.getElementById('extras-bar').classList.toggle('hidden', !showSides && !showDesserts);
+  document.getElementById('bar-sides-btn').classList.toggle('hidden', !showSides);
+  document.getElementById('bar-desserts-btn').classList.toggle('hidden', !showDesserts);
+  document.getElementById('sides-toggle').textContent = showSides ? '🥗 Hide Sides' : '🥗 Add Sides';
+  document.getElementById('desserts-toggle').textContent = showDesserts ? '🍰 Hide Desserts' : '🍰 Add Desserts';
   if(plan.length) renderCards();
 }
+function toggleSides(){ showSides = !showSides; updateExtrasUI(); }
+function toggleDesserts(){ showDesserts = !showDesserts; updateExtrasUI(); }
 
 function suggestSide(i){
   const pool = R.filter(r=>r.type==='side');
@@ -2215,19 +2221,19 @@ function renderCards(){
             :`<button class="btn-extra" onclick="suggestLunch(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openLunchPicker(${i})">+ Pick</button>`}
         </div>
       </div>`:''}
-      ${showExtras?`<div class="card-extras">
-        <div class="extra-row">
+      ${(showSides||showDesserts)?`<div class="card-extras">
+        ${showSides?`<div class="extra-row">
           <span class="extra-label">🥗 Side</span>
           ${plan[i].side
             ?`<div class="extra-filled"><span class="extra-name" onclick="openRecipeDetail(${plan[i].side.id})" title="View recipe">${plan[i].side.name}</span><button class="btn-extra" onclick="openSidePicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearSide(${i})" title="Remove">✕</button></div>`
             :`<button class="btn-extra" onclick="suggestSide(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openSidePicker(${i})">+ Pick</button>`}
-        </div>
-        <div class="extra-row">
+        </div>`:''}
+        ${showDesserts?`<div class="extra-row">
           <span class="extra-label">🍰 Dessert</span>
           ${plan[i].dessert
             ?`<div class="extra-filled"><span class="extra-name" onclick="openRecipeDetail(${plan[i].dessert.id})" title="View recipe">${plan[i].dessert.name}</span><button class="btn-extra" onclick="openDessertPicker(${i})" title="Change">↔</button><button class="btn-extra-rm" onclick="clearDessert(${i})" title="Remove">✕</button></div>`
             :`<button class="btn-extra" onclick="suggestDessert(${i})">🎲 Suggest</button><button class="btn-extra" onclick="openDessertPicker(${i})">+ Pick</button>`}
-        </div>
+        </div>`:''}
       </div>`:''}
     </div>`;
   }).join('');
