@@ -1583,12 +1583,19 @@ function saveToStorage(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(_doSav
 function updateRecipes(){
   if(!_currentUser){ alert('Please sign in first.'); return; }
   if(!confirm('This will update all your existing recipes with the latest versions from the starter collection. Your favorites and made-it marks are preserved. Personal recipes you added yourself are untouched. Continue?')) return;
-  let count=0;
+  let count=0, skipped=0;
   SEED_RECIPES.forEach(seed=>{
     const idx=R.findIndex(r=>r.id===seed.id);
     if(idx>-1){
-      R[idx]={...seed,seed:true,fav:R[idx].fav,made:R[idx].made};
-      count++;
+      const cur=R[idx];
+      // Only overwrite genuine starter copies — never a personal recipe that
+      // happens to occupy the same ID, and never a copy saved from Community.
+      if(!cur.saved_from && (cur.seed || cur.name===seed.name)){
+        R[idx]={...seed,seed:true,fav:cur.fav,made:cur.made};
+        count++;
+      } else {
+        skipped++;
+      }
     } else {
       R.push({...seed,seed:true});
       count++;
@@ -1598,7 +1605,7 @@ function updateRecipes(){
   saveToStorage();
   renderAll();
   if(dbVisible) renderDB();
-  alert(`✅ Updated ${count} recipe${count!==1?'s':''}!`);
+  alert(`✅ Updated ${count} recipe${count!==1?'s':''}!${skipped?`\n(${skipped} skipped — your own recipes were left untouched.)`:''}`);
 }
 
 function syncNewRecipes(){
