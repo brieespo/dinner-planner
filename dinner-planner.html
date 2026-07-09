@@ -446,7 +446,6 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
           <button class="more-menu-item" onclick="closeMoreMenu();openDisplayNameModal()">👤 Set Display Name</button>
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();exportRecipes()">⬇ Export Recipes</button>
-          <button class="more-menu-item" onclick="closeMoreMenu();syncNewRecipes()">🔄 Sync New Recipes</button>
           <button class="more-menu-item" onclick="closeMoreMenu();updateRecipes()">⬆ Update Recipes</button>
           <div class="more-menu-divider"></div>
           <button class="more-menu-item" onclick="closeMoreMenu();openHelpModal()">❓ How To Use</button>
@@ -1606,26 +1605,6 @@ function updateRecipes(){
   renderAll();
   if(dbVisible) renderDB();
   alert(`✅ Updated ${count} recipe${count!==1?'s':''}!${skipped?`\n(${skipped} skipped — your own recipes were left untouched.)`:''}`);
-}
-
-function syncNewRecipes(){
-  if(!_currentUser){ alert('Please sign in first.'); return; }
-  let added=0;
-  SEED_RECIPES.forEach(seed=>{
-    if(!R.find(r=>r.id===seed.id)){
-      R.push({...seed,seed:true});
-      added++;
-    }
-  });
-  if(added>0){
-    nextId=Math.max(...R.map(r=>r.id),0)+1;
-    saveToStorage();
-    renderAll();
-    if(dbVisible) renderDB();
-    alert(`✅ Added ${added} new recipe${added!==1?'s':''} to your collection!`);
-  } else {
-    alert('✅ Your collection is already up to date.');
-  }
 }
 
 async function loadUserData(user){
