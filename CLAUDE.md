@@ -62,3 +62,15 @@ All actions are on Node 24-compatible versions:
 - Vanilla JS only
 - Keep everything in one file
 - Short variable/function names are fine (existing code uses this style)
+
+## Design language (suite-wide rules)
+
+- **No emoji in UI chrome.** Buttons, menus, headers, tab labels use inline SVG line icons (Lucide/Feather style, open-licensed, pasted as inline <svg> with stroke="currentColor" so they tint via CSS variables). No icon library or CDN.
+- **Status markers are CSS dots/chips** in the theme palette, never colored emoji.
+- **One identity mark**: a single logo glyph in the header is the only decorative one on screen.
+- Emoji is allowed in user-defined content (tags, notes) — data, not chrome.
+- Warmth via accent colors, rounded cards, micro-copy voice — not decoration.
+
+## Model escalation
+
+If a task appears to exceed your ability — a fix has failed twice, architectural uncertainty, or a risky data-model change — say so explicitly and recommend rerunning on a more capable model (/model fable) instead of continuing to attempt it.
