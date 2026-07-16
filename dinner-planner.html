@@ -403,26 +403,40 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
     <h2>Dinner Planner</h2>
     <p class="auth-tagline">Smart weekly meal planning</p>
     <p class="auth-sub" id="auth-subtitle">Sign in to access your recipes</p>
-    <div class="auth-field">
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')authSubmit()">
+    <div id="auth-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')authSubmit()">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="auth-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.25rem">
+        <span style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="auth-remember" style="cursor:pointer">
+          <label for="auth-remember" style="font-size:.82rem;color:var(--muted);cursor:pointer">Remember me</label>
+        </span>
+        <a onclick="forgotPassword()" style="font-size:.82rem;color:var(--accent);cursor:pointer;text-decoration:underline">Forgot password?</a>
+      </div>
+      <div class="auth-btn-row">
+        <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
+      </div>
+      <div style="margin-top:.6rem">
+        <button class="btn btn-ghost" style="width:100%" onclick="authGuest()">Just browsing? Continue as Guest</button>
+      </div>
     </div>
-    <div class="auth-field">
-      <label>Password</label>
-      <input type="password" id="auth-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
-    </div>
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-      <input type="checkbox" id="auth-remember" style="cursor:pointer">
-      <label for="auth-remember" style="font-size:.82rem;color:var(--muted);cursor:pointer">Remember me</label>
-    </div>
-    <div class="auth-btn-row">
-      <button class="btn btn-accent" id="auth-btn" onclick="authSubmit()">Sign In</button>
-    </div>
-    <div style="margin-top:.6rem">
-      <button class="btn btn-ghost" style="width:100%" onclick="authGuest()">Just browsing? Continue as Guest</button>
+    <div id="reset-section" class="hidden">
+      <div class="auth-field">
+        <label>New Password</label>
+        <input type="password" id="reset-password" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')submitNewPassword()">
+      </div>
+      <div class="auth-btn-row">
+        <button class="btn btn-accent" onclick="submitNewPassword()">Set New Password</button>
+      </div>
     </div>
     <div class="auth-err" id="auth-err"></div>
-    <div class="auth-toggle">
+    <div class="auth-toggle" id="auth-toggle-row">
       <span id="auth-toggle-text">Don't have an account?</span>
       <a onclick="toggleAuthMode()"><span id="auth-toggle-link"> Sign up</span></a>
     </div>
@@ -1707,9 +1721,52 @@ async function loadStarterRecipes(){
 }
 
 sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){ showResetUI(); return; }
   if(session && event==='SIGNED_IN') await handleAuthSession(session);
   if(!session && !_guestMode){ _currentUser=null; document.getElementById('auth-overlay').classList.remove('hidden'); document.getElementById('user-info').style.display='none'; }
 });
+
+// ---- PASSWORD RESET ----
+async function forgotPassword(){
+  const email=document.getElementById('auth-email').value.trim();
+  const errEl=document.getElementById('auth-err');
+  if(!email){
+    errEl.textContent='Type your email in the box above, then click "Forgot password?" again.';
+    errEl.className='auth-err err';
+    document.getElementById('auth-email').focus();
+    return;
+  }
+  errEl.textContent='Sending reset link…'; errEl.className='auth-err ok';
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
+  errEl.textContent='✓ Reset link sent — check your email (and spam folder).'; errEl.className='auth-err ok';
+}
+
+function showResetUI(){
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  document.getElementById('auth-form').classList.add('hidden');
+  document.getElementById('auth-toggle-row').classList.add('hidden');
+  document.getElementById('reset-section').classList.remove('hidden');
+  document.getElementById('auth-subtitle').textContent='Choose a new password';
+  document.getElementById('auth-err').textContent='';
+  setTimeout(()=>document.getElementById('reset-password').focus(),80);
+}
+
+async function submitNewPassword(){
+  const pass=document.getElementById('reset-password').value;
+  const errEl=document.getElementById('auth-err');
+  if(pass.length<6){ errEl.textContent='Password must be at least 6 characters.'; errEl.className='auth-err err'; return; }
+  errEl.textContent='Saving…'; errEl.className='auth-err ok';
+  const {error}=await sb.auth.updateUser({password:pass});
+  if(error){ errEl.textContent=error.message; errEl.className='auth-err err'; return; }
+  errEl.textContent=''; errEl.className='auth-err';
+  document.getElementById('reset-section').classList.add('hidden');
+  document.getElementById('auth-form').classList.remove('hidden');
+  document.getElementById('auth-toggle-row').classList.remove('hidden');
+  document.getElementById('auth-subtitle').textContent='Sign in to access your recipes';
+  const {data:s}=await sb.auth.getSession();
+  if(s?.session) await handleAuthSession(s.session);
+}
 
 // ---- COMMUNITY ----
 let communityVisible = false;
