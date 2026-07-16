@@ -74,3 +74,10 @@ All actions are on Node 24-compatible versions:
 ## Model escalation
 
 If a task appears to exceed your ability — a fix has failed twice, architectural uncertainty, or a risky data-model change — say so explicitly and recommend rerunning on a more capable model (/model fable) instead of continuing to attempt it.
+
+## Backups (safety net)
+
+- `recipe_backups` table in Supabase: append-only daily snapshots of each user's raw `user_data` (recipes/tags/rules), taken client-side at sign-in (max 1 per 20h).
+- RLS allows INSERT and SELECT of own rows only — no UPDATE/DELETE policies, so no client bug can destroy backups. Prune old rows manually via SQL Editor if the table grows large.
+- To restore: query `select recipes from recipe_backups where user_id='<uuid>' order by created_at desc;`, find the wanted snapshot, then update `user_data.recipes` for that user.
+- NEVER run bulk deletes against user data or `public_recipes` based on assumptions about ID ranges — recipe IDs are per-user counters and overlap unpredictably (lesson from the July 2026 purge incident).

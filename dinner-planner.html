@@ -1623,6 +1623,18 @@ async function loadUserData(user){
     const {data,error} = await sb.from('user_data').select('*').eq('user_id',user.id).maybeSingle();
     if(error){ console.error('loadUserData error:',error); return; }
     if(data){
+      // Safety net: append-only daily snapshot of the user's RAW cloud data,
+      // taken before any migration logic touches it. Clients can only insert
+      // into recipe_backups (RLS) — no version of this app can destroy one.
+      if(data.recipes?.length){
+        try{
+          const {data:last}=await sb.from('recipe_backups').select('created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1);
+          const lastT=last?.[0]?new Date(last[0].created_at).getTime():0;
+          if(Date.now()-lastT > 20*60*60*1000){
+            await sb.from('recipe_backups').insert({user_id:user.id,recipes:data.recipes,tags:data.tags||[],rules:data.rules||{}});
+          }
+        }catch(e){ console.error('backup snapshot error:',e); }
+      }
       if(data.recipes?.length){
         R.length=0;
         let migrated=false;
