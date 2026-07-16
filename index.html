@@ -1655,8 +1655,11 @@ async function loadUserData(user){
         });
         nextId=Math.max(...R.map(r=>r.id),0)+1;
         if(migrated) saveToStorage();
-        if(fixedSeedIds.length){
-          try{ await sb.from('public_recipes').delete().eq('user_id',user.id).in('recipe_id',fixedSeedIds); }
+        // Community cleanup runs EVERY sign-in (idempotent): remove any of this
+        // user's starter-recipe copies that ever got wrongly published.
+        const mySeedIds=R.filter(r=>r.seed).map(r=>r.id);
+        if(mySeedIds.length){
+          try{ await sb.from('public_recipes').delete().eq('user_id',user.id).in('recipe_id',mySeedIds); }
           catch(e){ console.error('community cleanup error:',e); }
         }
       }
@@ -1706,9 +1709,13 @@ async function renderCommunity(){
   try{
     const {data,error}=await sb.from('public_recipes').select('*');
     if(error) throw error;
+    // Never show starter-collection copies in Community, no matter who uploaded
+    // them or how (stale clients, pre-flag data): match by seed flag or name.
+    const seedNames=new Set(SEED_RECIPES.map(s=>s.name));
+    const rows=(data||[]).filter(row=>!(row.recipe?.seed || seedNames.has(row.recipe?.name)));
     _communityRows={};
-    (data||[]).forEach(row=>{ _communityRows[row.user_id+'_'+row.recipe_id]=row; });
-    const shuffled=shuffle(data||[]);
+    rows.forEach(row=>{ _communityRows[row.user_id+'_'+row.recipe_id]=row; });
+    const shuffled=shuffle(rows);
     grid.innerHTML=shuffled.length
       ? shuffled.map(communityCardHTML).join('')
       : '<div style="color:var(--muted);font-size:.9rem;padding:2rem;text-align:center">No community recipes found — try reloading the page.</div>';
