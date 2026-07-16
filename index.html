@@ -1503,6 +1503,9 @@ function saveRecipe(){
 
 // ---- SUPABASE + PERSISTENCE ----
 const SUPABASE_URL = 'https://zymvsdkwmdhrwjycxisr.supabase.co';
+// Bri's auth user id — the starter collection publishes to Community under this
+// account only. Until set, starter recipes stay hidden from Community entirely.
+const OWNER_ID = '';
 const SUPABASE_KEY = 'sb_publishable_svwMiYGDfWnINCeo28XiLw_UIFHRUg5';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1576,7 +1579,7 @@ async function _doSave(){
     await sb.from('user_data').upsert({user_id:_currentUser.id,recipes:R,tags:TAGS,rules:{...DAY_RULES,_savedMenus:SAVED_MENUS},display_name:_displayName||null,updated_at:new Date().toISOString()},{onConflict:'user_id'});
     // Sync originals to community (exclude copies saved from other users)
     const handle=_displayName||_currentUser.email.split('@')[0];
-    const originals=R.filter(r=>!r.saved_from&&!r.seed);
+    const originals=R.filter(r=>!r.saved_from&&(!r.seed||(OWNER_ID&&_currentUser.id===OWNER_ID)));
     if(originals.length){
       await sb.from('public_recipes').upsert(
         originals.map(r=>({user_id:_currentUser.id,recipe_id:r.id,recipe:r,user_handle:handle,updated_at:new Date().toISOString()})),
@@ -1662,7 +1665,7 @@ async function loadUserData(user){
         // Community cleanup runs EVERY sign-in (idempotent): remove any of this
         // user's starter-recipe copies that ever got wrongly published.
         const mySeedIds=R.filter(r=>r.seed).map(r=>r.id);
-        if(mySeedIds.length){
+        if(mySeedIds.length && !(OWNER_ID&&user.id===OWNER_ID)){
           try{ await sb.from('public_recipes').delete().eq('user_id',user.id).in('recipe_id',mySeedIds); }
           catch(e){ console.error('community cleanup error:',e); }
         }
@@ -1719,7 +1722,7 @@ async function renderCommunity(){
     // Never show starter-collection copies in Community, no matter who uploaded
     // them or how (stale clients, pre-flag data): match by seed flag or name.
     const seedNames=new Set(SEED_RECIPES.map(s=>s.name));
-    const rows=(data||[]).filter(row=>!(row.recipe?.seed || seedNames.has(row.recipe?.name)));
+    const rows=(data||[]).filter(row=>(OWNER_ID&&row.user_id===OWNER_ID) || !(row.recipe?.seed || seedNames.has(row.recipe?.name)));
     _communityRows={};
     rows.forEach(row=>{ _communityRows[row.user_id+'_'+row.recipe_id]=row; });
     const shuffled=shuffle(rows);
@@ -1762,7 +1765,7 @@ function saveToCollection(key){
   const row=_communityRows[key];
   if(!row||!_currentUser) return;
   const r=row.recipe;
-  R.push({...r,id:nextId++,saved_from:{user_id:row.user_id,handle:row.user_handle,original_id:r.id}});
+  R.push({...r,id:nextId++,seed:undefined,saved_from:{user_id:row.user_id,handle:row.user_handle,original_id:r.id}});
   saveToStorage();
   renderCommunity();
 }
