@@ -1646,13 +1646,17 @@ async function loadUserData(user){
           }
           R.push(r);
         });
-        // Add any new seed recipes not yet in user's account
-        SEED_RECIPES.forEach(seed=>{
-          if(!R.find(r=>r.id===seed.id)){
-            R.push({...seed,seed:true});
-            migrated=true;
-          }
-        });
+        // Add any new seed recipes not yet in user's account — but only for
+        // users who opted into the starter collection (have seed recipes).
+        // Blank-slate users who declined it shouldn't get it force-added.
+        if(R.some(r=>r.seed)){
+          SEED_RECIPES.forEach(seed=>{
+            if(!R.find(r=>r.id===seed.id)){
+              R.push({...seed,seed:true});
+              migrated=true;
+            }
+          });
+        }
         nextId=Math.max(...R.map(r=>r.id),0)+1;
         if(migrated) saveToStorage();
         // Community cleanup runs EVERY sign-in (idempotent): remove any of this
