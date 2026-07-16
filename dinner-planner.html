@@ -1662,6 +1662,9 @@ async function loadUserData(user){
           try{ await sb.from('public_recipes').delete().eq('user_id',user.id).in('recipe_id',mySeedIds); }
           catch(e){ console.error('community cleanup error:',e); }
         }
+        // Re-publish originals on every sign-in so Community rows self-restore
+        // if they were ever deleted (e.g., during cleanup of bad data).
+        saveToStorage();
       }
       if(data.display_name) _displayName=data.display_name;
       if(data.tags?.length) TAGS=data.tags;
