@@ -201,7 +201,9 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
 .type-tab.active{background:var(--bg);color:var(--text);font-weight:700;border-color:var(--border);border-bottom-color:var(--bg)}
 .db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem}
 .db-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.45rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.db-card-name{font-size:.9rem;font-weight:700;line-height:1.3}
+.db-card-name{font-size:.9rem;font-weight:700;line-height:1.3;cursor:pointer}
+.db-card-name:hover{color:var(--accent)}
+.rd-actions{display:flex;gap:.5rem;margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--border)}
 .db-card-src{font-size:.74rem;color:var(--muted)}
 .db-card-ings{font-size:.75rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .db-card-foot{display:flex;gap:.4rem;margin-top:auto;padding-top:.65rem;border-top:1px solid var(--border)}
@@ -1002,6 +1004,10 @@ main{max-width:1100px;margin:0 auto;padding:2.25rem 2rem}
       <div class="rd-section">Instructions</div>
       <div class="rd-instructions" id="rd-instructions"></div>
     </div>
+    <div class="rd-actions" id="rd-actions" style="display:none">
+      <button class="btn-edit" id="rd-edit-btn"></button>
+      <button class="btn-del" id="rd-del-btn"></button>
+    </div>
   </div>
 </div>
 
@@ -1255,7 +1261,7 @@ function dbCardHTML(r){
     <div class="db-card${r.fav?' is-fav':''}">
       <div style="display:flex;align-items:flex-start;gap:.4rem">
         <div style="flex:1">
-          <div class="db-card-name">${r.name}</div>
+          <div class="db-card-name" onclick="openRecipeDetail(${r.id})" title="View full recipe">${r.name}</div>
           <div class="db-card-src">${r.src}${r.page?' · '+r.page:''}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:.7rem">↗</a>`:''}</div>
         </div>
         <button class="btn-fav${r.fav?' active':''}" onclick="toggleFav(${r.id})" title="${r.fav?'Remove from favorites':'Add to favorites'}">${ic('star')}</button>
@@ -1416,10 +1422,37 @@ function openRecipeDetail(idOrRecipe){
   const hasInstructions = r.instructions && r.instructions.trim();
   document.getElementById('rd-instructions-section').style.display = hasInstructions ? '' : 'none';
   document.getElementById('rd-instructions').textContent = r.instructions || '';
+  // Edit/Delete only make sense for a recipe actually in the user's own
+  // collection — not a Community preview (which carries no stable R entry).
+  const owned = !r._community_handle && R.some(x=>x.id===r.id);
+  const actions=document.getElementById('rd-actions');
+  actions.style.display = owned ? '' : 'none';
+  if(owned){
+    const editBtn=document.getElementById('rd-edit-btn'), delBtn=document.getElementById('rd-del-btn');
+    editBtn.innerHTML=ic('pencil')+' Edit';
+    delBtn.innerHTML=ic('trash')+' Delete';
+    editBtn.onclick=()=>{ closeRecipeDetail(); openEditModal(r.id); };
+    delBtn.onclick=()=>{ closeRecipeDetail(); deleteRecipe(r.id); };
+  }
   document.getElementById('rd-modal').classList.add('open');
 }
 function closeRecipeDetail(){ document.getElementById('rd-modal').classList.remove('open'); }
 function handleCardClick(e,id){ if(e.target.closest('button,select,a,.extra-name')) return; openRecipeDetail(id); }
+// Deep link: the agenda app (and anything else) can link straight to a recipe
+// via ?recipe=<id>. Runs once recipes (R) are loaded; strips the param after
+// so a manual refresh doesn't reopen it. Unknown/deleted ids just no-op.
+function openRecipeFromUrl(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const rid = params.get('recipe');
+    if(!rid) return;
+    const id = Number(rid);
+    if(!Number.isNaN(id)) openRecipeDetail(id);
+    params.delete('recipe');
+    const qs = params.toString();
+    history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : '') + location.hash);
+  }catch(e){ console.error('openRecipeFromUrl', e); }
+}
 
 function toggleFav(id){
   const r = R.find(x=>x.id===id);
@@ -1544,6 +1577,7 @@ async function handleAuthSession(session){
   updateUserInfo();
   document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
   document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+  openRecipeFromUrl();
 }
 
 async function authSubmit(){
@@ -1582,6 +1616,7 @@ function authGuest(){
   updateUserInfo();
   document.getElementById('sbt-').style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent-light)';
   document.getElementById('num-picker').innerHTML=[3,4,5,6,7].map(n=>`<button class="nbt${n===4?' active':''}" data-n="${n}" onclick="setN(${n})">${n}</button>`).join('');
+  openRecipeFromUrl();
 }
 
 let _saveTimer = null;
